@@ -928,7 +928,7 @@
 // ══════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbzaeJOWY6THIy2z9xDUuHDBwxSlVOtDOABaxM4GWcHHW3_65vpm0MPrI4y4EGOyJYqN/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzvBWjQO0YnywP4PahaWiLe9pqXmDXJq8DkXy55cxL9Wk9CgVaePivHdzWIXsQ0_YUa/exec';
 
 // ══════════════════════════════════════════════════════════════════
 //  API WRAPPERS
@@ -2461,13 +2461,19 @@ async function showDashboard(pid, phone) {
     const s = d.stats    || {};
 
     // ── Avatar + name card ─────────────────────────────────────────
-    const av = getAvatar(p.FullName || '');
     const avEl = el('dash-avatar');
-    if (avEl) {
-      avEl.style.background = av.bg;
-      avEl.style.color      = av.text;
-      avEl.textContent      = av.initials;
-    }
+if (avEl) {
+  if (p.PhotoUrl) {
+    // Show actual photo
+    avEl.style.background = 'transparent';
+    avEl.innerHTML = `<img src="${p.PhotoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:16px" onerror="this.parentElement.style.background='${av.bg}';this.parentElement.innerHTML='${av.initials}'">`;
+  } else {
+    // Fall back to initials avatar
+    avEl.style.background = av.bg;
+    avEl.style.color      = av.text;
+    avEl.textContent      = av.initials;
+  }
+}
     if (el('dash-name')) el('dash-name').textContent = p.FullName || '—';
     if (el('dash-occ'))  el('dash-occ').textContent  = (p.Occupation || p.Profession || '') + (p.Town ? ' · ' + p.Town : '');
     const badgesEl = el('dash-badges');
