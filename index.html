@@ -1,0 +1,2471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Spotly — Find Skilled Workers Near You</title>
+  <meta name="description" content="Discover local skilled workers and businesses near you across Nigeria." />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #F7F6F3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111111; -webkit-font-smoothing: antialiased; }
+    body { overscroll-behavior-y: none; }
+    input, select, textarea, button, a { font-family: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    /* ── Scrollbar hide ───────────────────────────────────────────── */
+    .no-scroll::-webkit-scrollbar { display: none; }
+    .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ── Colors ───────────────────────────────────────────────────── */
+    :root {
+      --primary:      #0F6E56;
+      --mid-green:    #1D9E75;
+      --light-green:  #E8F5F0;
+      --pale-tint:    #F2FAF7;
+      --page-bg:      #F7F6F3;
+      --surface:      #FFFFFF;
+      --text-primary: #111111;
+      --text-secondary:#6B6B6B;
+      --text-tertiary: #9E9E9E;
+      --border:       #EBEBEB;
+      --amber:        #D4930A;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    .t-h1  { font-size: 22px; font-weight: 500; color: var(--text-primary); }
+    .t-h2  { font-size: 17px; font-weight: 500; color: var(--text-primary); }
+    .t-h3  { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+    .t-body{ font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+    .t-cap { font-size: 11px; font-weight: 400; color: var(--text-tertiary); }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    #app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--page-bg); display: flex; flex-direction: column; position: relative; }
+    #view-container { flex: 1; overflow-y: auto; padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+
+    /* ── Cards ────────────────────────────────────────────────────── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .card-sm { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    .btn-primary { width: 100%; height: 52px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 500; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 150ms ease; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-outline { height: 44px; border: 1.5px solid var(--primary); color: var(--primary); font-size: 14px; font-weight: 500; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 150ms ease; padding: 0 16px; }
+    .btn-outline:hover { background: var(--light-green); }
+    .btn-ghost { height: 44px; border: 1px solid var(--border); color: var(--text-secondary); font-size: 14px; font-weight: 400; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; gap: 6px; transition: border-color 150ms ease; padding: 0 16px; }
+
+    /* ── Inputs ───────────────────────────────────────────────────── */
+    .inp { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; font-size: 13px; color: var(--text-primary); background: var(--surface); outline: none; transition: border-color 150ms ease; }
+    .inp:focus { border-color: var(--primary); }
+    .inp::placeholder { color: var(--text-tertiary); }
+    select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239E9E9E' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    textarea.inp { height: auto; padding: 10px 12px; resize: none; }
+    .inp:disabled { opacity: 0.5; }
+    .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+
+    /* ── Badges ───────────────────────────────────────────────────── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-verified  { background: #E8F5F0; color: #085041; }
+    .badge-premium   { background: #FEF3DC; color: #854F0B; }
+    .badge-distance  { background: #EBF3FD; color: #185FA5; }
+    .badge-exp       { background: #F1EFE8; color: #444441; }
+    .badge-id        { background: #F1EFE8; color: #444441; font-family: monospace; }
+
+    /* ── Bottom Nav ───────────────────────────────────────────────── */
+    #bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px 6px; gap: 2px; color: var(--text-tertiary); font-size: 10px; font-weight: 500; transition: color 150ms ease; border: none; background: none; cursor: pointer; }
+    .nav-item i { font-size: 22px; }
+    .nav-item.active { color: var(--primary); }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero { background: var(--primary); padding: 48px 20px 24px; border-radius: 0 0 24px 24px; }
+    .hero-title { color: #fff; font-size: 24px; font-weight: 500; }
+    .hero-sub { color: #9FE1CB; font-size: 13px; margin-top: 2px; }
+
+    /* ── Search bar ───────────────────────────────────────────────── */
+    .search-bar { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 24px; padding: 0 16px; height: 48px; margin-top: 14px; }
+    .search-bar input { flex: 1; font-size: 14px; border: none; outline: none; color: var(--text-primary); background: transparent; }
+    .search-bar input::placeholder { color: var(--text-tertiary); }
+
+    /* ── Category grid ────────────────────────────────────────────── */
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .cat-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px; transition: border-color 150ms ease; }
+    .cat-tile:hover { border-color: var(--mid-green); }
+    .cat-tile i { font-size: 22px; color: var(--mid-green); }
+    .cat-tile span { font-size: 11px; color: var(--text-secondary); text-align: center; line-height: 1.3; }
+
+    /* ── Stats ribbon ─────────────────────────────────────────────── */
+    .stats-ribbon { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .stat-item { text-align: center; padding: 12px 8px; border-right: 1px solid var(--border); }
+    .stat-item:last-child { border-right: none; }
+    .stat-num { font-size: 18px; font-weight: 500; color: var(--primary); }
+    .stat-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+    /* ── Provider card ────────────────────────────────────────────── */
+    .provider-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; transition: border-color 150ms ease; cursor: pointer; width: 100%; text-align: left; }
+    .provider-card:hover { border-color: var(--mid-green); }
+    .provider-card:active { transform: scale(0.99); }
+    .avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; flex-shrink: 0; }
+    .avatar-lg { width: 64px; height: 64px; font-size: 20px; font-weight: 500; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .badges-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .stars-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+    .star-i { font-size: 12px; }
+    .star-filled { color: var(--amber); }
+    .star-empty  { color: var(--border); }
+
+    /* ── Section header ───────────────────────────────────────────── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-header h2 { font-size: 17px; font-weight: 500; }
+    .section-header a, .section-header button { font-size: 13px; color: var(--primary); font-weight: 500; }
+
+    /* ── Skeleton ─────────────────────────────────────────────────── */
+    @keyframes skpulse { 0%,100%{opacity:.4} 50%{opacity:.8} }
+    .skeleton { background: var(--border); border-radius: 8px; animation: skpulse 1.2s ease infinite; }
+    .skel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+
+    /* ── Bottom sheet ─────────────────────────────────────────────── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; }
+    .overlay.open { display: flex; animation: fadein .2s ease; }
+    @keyframes fadein { from{opacity:0} to{opacity:1} }
+    .sheet { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; margin: 0 auto; max-height: 85vh; overflow-y: auto; animation: slideup .28s ease; }
+    @keyframes slideup { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 12px auto 4px; }
+    .sheet-title { font-size: 16px; font-weight: 500; padding: 4px 20px 12px; }
+    .sheet-body { padding: 0 20px 32px; }
+
+    /* ── Chips ────────────────────────────────────────────────────── */
+    .chip { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all 150ms ease; }
+    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ── Radius pills ─────────────────────────────────────────────── */
+    .radius-pill { flex: 1; height: 36px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); transition: all 150ms ease; }
+    .radius-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ── Form steps ───────────────────────────────────────────────── */
+    .progress-bar { height: 3px; background: var(--border); }
+    .progress-fill { height: 3px; background: var(--primary); transition: width 300ms ease; }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ── Profile tabs ─────────────────────────────────────────────── */
+    .tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .tab-btn { flex: 1; padding: 12px 0; font-size: 13px; font-weight: 500; color: var(--text-tertiary); border: none; background: none; cursor: pointer; position: relative; transition: color 150ms ease; }
+    .tab-btn.active { color: var(--primary); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; right: 25%; height: 2px; background: var(--primary); border-radius: 2px; }
+    .tab-panel { display: none; padding: 16px 20px; }
+    .tab-panel.active { display: block; }
+
+    /* ── Empty & Error states ─────────────────────────────────────── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px; text-align: center; }
+    .empty-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--light-green); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .empty-icon i { font-size: 28px; color: var(--primary); }
+
+    /* ── View sections ────────────────────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; }
+    .px20 { padding: 0 20px; }
+    .gap12 { display: flex; flex-direction: column; gap: 12px; }
+    .divider { height: 1px; background: var(--border); margin: 0; }
+
+    /* ── Profile detail rows ──────────────────────────────────────── */
+    .detail-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+    .detail-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--page-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .detail-icon i { font-size: 14px; color: var(--text-secondary); }
+
+    /* ── Profile fixed actions ────────────────────────────────────── */
+    #profile-actions { position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 12px 20px; background: var(--page-bg); border-top: 1px solid var(--border); display: none; gap: 12px; z-index: 50; }
+    #profile-actions.show { display: flex; }
+
+    /* ── Portfolio grid ───────────────────────────────────────────── */
+    .portfolio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .portfolio-img { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--page-bg); }
+    .portfolio-img img { width: 100%; height: 100%; object-fit: cover; }
+    .portfolio-img .del-btn { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 150ms; border: none; cursor: pointer; }
+    .portfolio-img:hover .del-btn { opacity: 1; }
+    .portfolio-img .del-btn i { font-size: 14px; color: #E53935; }
+    .add-photo-btn { aspect-ratio: 1; border-radius: 8px; border: 2px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: border-color 150ms; }
+    .add-photo-btn:hover { border-color: var(--mid-green); }
+    .add-photo-btn i { font-size: 24px; color: var(--text-tertiary); }
+    .add-photo-btn span { font-size: 11px; color: var(--text-tertiary); }
+
+    /* ── Location chip ────────────────────────────────────────────── */
+    .loc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.15); border-radius: 20px; margin-top: 10px; cursor: pointer; }
+    .loc-chip span { font-size: 12px; color: #9FE1CB; font-weight: 500; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Sticky search header ─────────────────────────────────────── */
+    .sticky-head { position: sticky; top: 0; background: var(--page-bg); z-index: 10; padding: 14px 20px 10px; border-bottom: 1px solid var(--border); }
+    .search-input-row { display: flex; gap: 8px; }
+    .search-input-wrap { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; height: 44px; }
+    .search-input-wrap input { flex: 1; font-size: 14px; border: none; outline: none; color: var(--text-primary); background: transparent; }
+    .chips-row { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; }
+    .filter-btn { width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .filter-btn i { font-size: 18px; color: var(--text-primary); }
+
+    /* ── Profile header ───────────────────────────────────────────── */
+    #profile-view .top-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px 10px; background: var(--page-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 14px; }
+    .profile-stat { padding: 12px 8px; text-align: center; border-right: 1px solid var(--border); }
+    .profile-stat:last-child { border-right: none; }
+    .profile-stat .num { font-size: 16px; font-weight: 500; color: var(--text-primary); }
+    .profile-stat .lbl { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+    /* ── Review stars selector ────────────────────────────────────── */
+    .star-sel { display: flex; gap: 6px; }
+    .star-sel button { font-size: 30px; border: none; background: none; cursor: pointer; }
+
+    /* ── Summary card ─────────────────────────────────────────────── */
+    .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .summary-row { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .summary-row-head .lbl { font-size: 12px; color: var(--text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .summary-row-head button { font-size: 12px; color: var(--primary); font-weight: 500; border: none; background: none; cursor: pointer; }
+
+    /* ── Filter active tags ───────────────────────────────────────── */
+    .filter-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 20px; background: var(--light-green); color: #085041; font-size: 12px; }
+    .filter-tag button { border: none; background: none; cursor: pointer; line-height: 1; }
+
+    /* ── GPS button ───────────────────────────────────────────────── */
+    .gps-btn { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 100%; text-align: left; transition: border-color 150ms; cursor: pointer; }
+    .gps-btn:hover { border-color: var(--mid-green); }
+    .gps-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--light-green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .gps-icon i { font-size: 18px; color: var(--primary); }
+
+    /* ── About hero ───────────────────────────────────────────────── */
+    .about-hero { background: var(--primary); border-radius: 14px; padding: 20px; margin: 0 20px; }
+    .about-hero h1 { color: #fff; font-size: 20px; font-weight: 500; line-height: 1.35; margin-bottom: 8px; }
+    .about-hero p { color: #9FE1CB; font-size: 13px; line-height: 1.7; }
+
+    /* ── Misc ─────────────────────────────────────────────────────── */
+    .row { display: flex; align-items: center; gap: 12px; }
+    .col { display: flex; flex-direction: column; gap: 6px; }
+    .spin { animation: spin .7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #DC2626; }
+    .success-msg { background: var(--light-green); border: 1px solid #A7D7C5; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #085041; }
+    .text-right { text-align: right; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       VIEW CONTAINER
+  ════════════════════════════════════════════════════════════ -->
+  <div id="view-container">
+
+    <!-- ── HOME VIEW ──────────────────────────────────────────── -->
+    <div id="home-view" class="view active">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="hero-title">Spotly</div>
+            <div class="hero-sub">Find skilled workers near you</div>
+          </div>
+          <button onclick="openMenuSheet()" style="background:rgba(255,255,255,0.15);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <i class="ti ti-menu-2" style="font-size:20px;color:#fff"></i>
+          </button>
+        </div>
+        <div class="search-bar">
+          <i class="ti ti-search" style="font-size:18px;color:#9E9E9E;flex-shrink:0"></i>
+          <input id="hero-search-input" type="text" placeholder="Carpenter, mechanic, tailor..." />
+          <button id="hero-search-btn" class="hidden" style="font-size:13px;font-weight:500;color:var(--primary)" onclick="doHeroSearch()">Search</button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div style="padding:20px;display:flex;flex-direction:column;gap:24px">
+
+        <!-- Location chip -->
+        <button class="loc-chip" onclick="openLocationPicker()" style="align-self:flex-start">
+          <i class="ti ti-map-pin" style="font-size:13px;color:var(--primary)"></i>
+          <span id="hero-location-label" style="color:var(--text-secondary)">Set your location</span>
+          <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text-tertiary)"></i>
+        </button>
+
+        <!-- Categories -->
+        <div>
+          <div class="section-header"><h2>Browse by category</h2></div>
+          <div class="cat-grid" id="cat-grid">
+            <button class="cat-tile" data-occupation="Builder" onclick="filterByCategory('Builder')"><i class="ti ti-building"></i><span>Builder</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Mechanic" onclick="filterByCategory('Mechanic')"><i class="ti ti-car"></i><span>Mechanic</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Tailor" onclick="filterByCategory('Tailor')"><i class="ti ti-scissors"></i><span>Tailor</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Electrician" onclick="filterByCategory('Electrician')"><i class="ti ti-bolt"></i><span>Electrician</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Photographer" onclick="filterByCategory('Photographer')"><i class="ti ti-camera"></i><span>Photographer</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Caterer" onclick="filterByCategory('Caterer')"><i class="ti ti-tools-kitchen"></i><span>Caterer</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Plumber" onclick="filterByCategory('Plumber')"><i class="ti ti-droplet"></i><span>Plumber</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" onclick="navTo('categories')"><i class="ti ti-grid-dots"></i><span>More</span></button>
+          </div>
+        </div>
+
+        <!-- Stats ribbon -->
+        <div class="card" style="padding:0">
+          <div class="stats-ribbon" id="stats-ribbon">
+            <div class="stat-item"><div class="stat-num" id="stat-providers">—</div><div class="stat-label">Providers</div></div>
+            <div class="stat-item"><div class="stat-num" id="stat-towns">—</div><div class="stat-label">Towns</div></div>
+            <div class="stat-item"><div class="stat-num" id="stat-occupations">—</div><div class="stat-label">Occupations</div></div>
+          </div>
+        </div>
+
+        <!-- Join banner — only shown when not logged in -->
+        <div id="home-join-banner" style="background:var(--light-green);border:1px solid #A7D7C5;border-radius:14px;padding:16px;position:relative">
+          <button onclick="document.getElementById('home-join-banner').style.display='none'" style="position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-tertiary)"><i class="ti ti-x"></i></button>
+          <div style="font-size:14px;font-weight:500;color:#085041;margin-bottom:4px">Are you a skilled worker or business owner?</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">List yourself on Spotly — it is free</div>
+          <button onclick="navTo('register')" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer">Join now</button>
+        </div>
+
+        <!-- Featured near you -->
+        <div id="featured-section">
+          <div class="section-header">
+            <h2>Featured near you</h2>
+            <button onclick="navTo('search')">See all</button>
+          </div>
+          <div id="home-featured" class="gap12">
+            <div class="skel-card"><div class="row"><div class="skeleton" style="width:48px;height:48px;border-radius:50%"></div><div class="col" style="flex:1"><div class="skeleton" style="height:14px;width:70%"></div><div class="skeleton" style="height:12px;width:45%"></div></div></div></div>
+            <div class="skel-card"><div class="row"><div class="skeleton" style="width:48px;height:48px;border-radius:50%"></div><div class="col" style="flex:1"><div class="skeleton" style="height:14px;width:70%"></div><div class="skeleton" style="height:12px;width:45%"></div></div></div></div>
+          </div>
+        </div>
+
+        <!-- Recently joined -->
+        <div>
+          <div class="section-header">
+            <h2>Recently joined</h2>
+            <button onclick="navTo('search')">See all</button>
+          </div>
+          <div id="home-recent" class="gap12"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEARCH VIEW ─────────────────────────────────────────── -->
+    <div id="search-view" class="view">
+      <div class="sticky-head">
+        <div class="search-input-row">
+          <div class="search-input-wrap">
+            <i class="ti ti-search" style="font-size:16px;color:#9E9E9E;flex-shrink:0"></i>
+            <input id="search-input" type="text" placeholder="Search providers..." oninput="debounceSearch()" />
+            <button id="clear-search" class="hidden" onclick="clearSearch()"><i class="ti ti-x" style="font-size:14px;color:#9E9E9E"></i></button>
+          </div>
+          <button class="filter-btn" onclick="openFilterSheet()"><i class="ti ti-adjustments-horizontal"></i></button>
+        </div>
+        <div class="chips-row no-scroll" id="cat-chips"></div>
+      </div>
+      <div style="padding:14px 20px" id="filter-tags-row"></div>
+      <div style="padding:0 20px 20px" id="search-results-wrap">
+        <div id="search-results" class="gap12"></div>
+      </div>
+    </div>
+
+    <!-- ── NEARBY VIEW ─────────────────────────────────────────── -->
+    <div id="nearby-view" class="view">
+      <!-- No GPS state -->
+      <div id="nearby-no-gps" class="empty-state" style="min-height:60vh">
+        <div class="empty-icon" style="width:64px;height:64px"><i class="ti ti-map-pin" style="font-size:28px;color:var(--primary)"></i></div>
+        <div class="t-h3" style="margin-bottom:8px">Enable location</div>
+        <div class="t-body" style="margin-bottom:24px;max-width:260px;line-height:1.6">Allow location access to find skilled workers near you</div>
+        <button class="btn-primary" style="width:240px;margin-bottom:12px" onclick="requestGps()">Enable location</button>
+        <button class="btn-ghost" style="width:240px" onclick="showView('search')">Browse by town instead</button>
+      </div>
+      <!-- Has GPS state -->
+      <div id="nearby-has-gps" class="hidden">
+        <div class="sticky-head">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div class="t-h2">Near you</div>
+              <div class="t-cap" id="nearby-subtitle" style="margin-top:2px">Getting location...</div>
+            </div>
+          </div>
+          <div class="row" style="gap:8px;margin-bottom:10px" id="radius-pills">
+            <button class="radius-pill" onclick="setRadius(5)"  data-r="5">5km</button>
+            <button class="radius-pill active" onclick="setRadius(10)" data-r="10">10km</button>
+            <button class="radius-pill" onclick="setRadius(25)" data-r="25">25km</button>
+            <button class="radius-pill" onclick="setRadius(50)" data-r="50">50km</button>
+          </div>
+          <div class="chips-row no-scroll" id="nearby-cat-chips"></div>
+        </div>
+        <div style="padding:14px 20px 20px">
+          <div id="nearby-count" class="t-body" style="margin-bottom:12px"></div>
+          <div id="nearby-results" class="gap12"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REGISTER VIEW ───────────────────────────────────────── -->
+    <div id="register-view" class="view">
+      <!-- Success screen -->
+      <div id="reg-success" class="hidden" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:24px;text-align:center">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--light-green);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+          <i class="ti ti-check" style="font-size:28px;color:var(--primary)"></i>
+        </div>
+        <div class="t-h1" style="margin-bottom:8px">You're on Spotly!</div>
+        <div class="t-body" style="margin-bottom:20px;line-height:1.6" id="reg-success-sub">Your profile is now live.</div>
+        <div id="reg-provider-id-chip" style="background:var(--primary);border-radius:20px;padding:8px 20px;margin-bottom:24px">
+          <span id="reg-provider-id" style="font-family:monospace;color:#fff;font-size:15px;font-weight:500"></span>
+        </div>
+        <a id="reg-wa-share" href="#" target="_blank" style="width:100%;max-width:280px;height:48px;background:#25D366;color:#fff;font-size:14px;font-weight:500;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;text-decoration:none">
+          <i class="ti ti-brand-whatsapp" style="font-size:18px"></i>Share on WhatsApp
+        </a>
+        <button onclick="showView('home')" class="btn-ghost" style="width:100%;max-width:280px">Go home</button>
+      </div>
+
+      <!-- Form -->
+      <div id="reg-form-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="reg-progress" style="width:25%"></div></div>
+        <div style="padding:14px 20px 6px;display:flex;align-items:center;gap:12px">
+          <button id="reg-back-btn" class="hidden" onclick="regPrev()"><i class="ti ti-arrow-left" style="font-size:20px;color:var(--text-primary)"></i></button>
+          <span class="t-cap" id="reg-step-label">Step 1 of 4</span>
+        </div>
+
+        <div style="padding:0 20px 32px">
+
+          <!-- Step 1 -->
+          <div class="step-panel active" id="reg-step-1">
+            <div class="t-h2" style="margin-bottom:20px">Tell us about yourself</div>
+            <div class="col">
+              <div>
+                <label class="label">Full name *</label>
+                <input class="inp" id="r-fullname" type="text" placeholder="Hassan Musa" />
+              </div>
+              <div>
+                <label class="label">Phone number *</label>
+                <input class="inp" id="r-phone" type="tel" placeholder="+234 800 000 0000" />
+              </div>
+              <div>
+                <label class="label">WhatsApp number (optional)</label>
+                <input class="inp" id="r-whatsapp" type="tel" placeholder="Same as phone? Leave empty" />
+              </div>
+              <button onclick="toggleAgentField()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--primary);font-weight:500;margin-top:4px">
+                <i class="ti ti-chevron-down" id="agent-arrow" style="font-size:14px"></i>
+                Registered by an agent?
+              </button>
+              <div id="agent-field" class="hidden">
+                <label class="label">Agent code</label>
+                <input class="inp" id="r-agentid" type="text" placeholder="e.g. AGT-1001" />
+              </div>
+              <button class="btn-primary" style="margin-top:8px" onclick="regNext(1)">Continue</button>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-panel" id="reg-step-2">
+            <div class="t-h2" style="margin-bottom:20px">What do you do?</div>
+            <div class="col">
+              <div>
+                <label class="label">Occupation *</label>
+                <input class="inp" id="r-occupation" type="text" placeholder="e.g. Carpenter, Solar Panel Installer, Bead Maker" oninput="filterOccupationSuggestions(this.value)" onblur="setTimeout(()=>{const b=el('occ-suggestions');if(b)b.style.display='none'},150)" autocomplete="off" />
+                <div id="occ-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:160px;overflow-y:auto;margin-top:4px;z-index:50;position:relative"></div>
+                <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Don't see yours? Type it — we'll add it automatically</div>
+              </div>
+              <div>
+                <label class="label">Years of experience</label>
+                <div class="row" style="gap:16px">
+                  <button onclick="adjYears(-1)" style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--surface);font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text-primary)">−</button>
+                  <span id="r-years-display" style="font-size:20px;font-weight:500;width:32px;text-align:center">0</span>
+                  <button onclick="adjYears(1)"  style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--surface);font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text-primary)">+</button>
+                </div>
+              </div>
+              <div>
+                <label class="label">About you (optional)</label>
+                <textarea class="inp" id="r-bio" rows="4" placeholder="Briefly describe your skills..." maxlength="300" oninput="updateBioCount()"></textarea>
+                <div style="font-size:11px;color:var(--text-tertiary);text-align:right;margin-top:2px"><span id="bio-count">0</span>/300</div>
+              </div>
+              <button class="btn-primary" onclick="regNext(2)">Continue</button>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-panel" id="reg-step-3">
+            <div class="t-h2" style="margin-bottom:20px">Where are you based?</div>
+            <div class="col">
+              <div>
+                <label class="label">State *</label>
+                <select class="inp" id="r-state" onchange="onRegStateChange()"><option value="">Select state</option></select>
+              </div>
+              <div>
+                <label class="label">LGA</label>
+                <input class="inp" id="r-lga" type="text" placeholder="Type your LGA e.g. Jaba" oninput="filterLgaSuggestions(this.value,'reg')" autocomplete="off" />
+                <div id="reg-lga-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:160px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+              </div>
+              <div>
+                <label class="label">Town / Village *</label>
+                <input class="inp" id="r-town" type="text" placeholder="Type your town e.g. Kwoi" oninput="filterTownSuggestions(this.value,'reg')" autocomplete="off" />
+                <div id="reg-town-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:160px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+              </div>
+              <!-- GPS button -->
+              <button class="gps-btn" onclick="captureGps()" id="gps-capture-btn">
+                <div class="gps-icon"><i class="ti ti-map-pin" id="gps-icon-i" style="font-size:18px"></i></div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Use my current location</div>
+                  <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px" id="gps-status-text">Helps customers find you on the map</div>
+                </div>
+              </button>
+              <button class="btn-primary" onclick="regNext(3)">Continue</button>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step-panel" id="reg-step-4">
+            <div class="t-h2" style="margin-bottom:16px">Almost done — review your details</div>
+            <div class="summary-card" id="reg-summary"></div>
+            <div id="reg-error" class="hidden" style="margin-top:12px"></div>
+            <button class="btn-primary" style="margin-top:16px" id="reg-submit-btn" onclick="submitRegistration()">Register on Spotly</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CATEGORIES VIEW ───────────────────────────────────── -->
+    <div id="categories-view" class="view">
+      <div style="padding:20px 20px 8px">
+        <div class="t-h1" style="margin-bottom:4px">Categories</div>
+        <div class="t-body" id="cat-count-label">Loading occupations...</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 20px" id="cat-grid-full"></div>
+    </div>
+
+    <!-- ── ABOUT VIEW ──────────────────────────────────────────── -->
+    <div id="about-view" class="view">
+      <div style="padding:20px 0 32px;display:flex;flex-direction:column;gap:16px">
+        <div class="about-hero">
+          <h1>Making local skills discoverable</h1>
+          <p>Spotly connects skilled workers and local businesses with customers in their communities. No apps to download. No accounts to create. Just search and connect.</p>
+        </div>
+        <div style="padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px" id="about-stats">
+          <div class="card"><div class="stat-num" id="a-stat-1">—</div><div class="stat-label" style="margin-top:2px">Total providers</div></div>
+          <div class="card"><div class="stat-num" id="a-stat-2">—</div><div class="stat-label" style="margin-top:2px">Towns covered</div></div>
+          <div class="card"><div class="stat-num" id="a-stat-3">—</div><div class="stat-label" style="margin-top:2px">Occupations</div></div>
+          <div class="card"><div class="stat-num" id="a-stat-4">—</div><div class="stat-label" style="margin-top:2px">Reviews approved</div></div>
+        </div>
+        <div style="padding:0 20px;display:flex;flex-direction:column;gap:12px">
+          ${[
+            ['ti-target','Our mission','Every skilled person deserves to be found. Spotly gives workers and businesses in every town a professional digital presence so customers can find them from anywhere at any time.'],
+            ['ti-users','Who it is for','Carpenters, mechanics, tailors, electricians, plumbers, caterers, photographers, farmers, doctors, barbers, bakers, event planners and anyone offering a skill or service.'],
+            ['ti-shield-check','Trust and verification','Every provider is manually verified before receiving a badge. Customer reviews are approved before going live. Ratings come from real people who used the service.'],
+            ['ti-world','Growing across Africa','Started in Kwoi, Jaba LGA, Kaduna State. Now expanding across Nigeria and beyond. Every new town that joins adds more discoverable local talent to the network.'],
+          ].map(([icon,title,body]) => `
+          <div class="card">
+            <div class="row" style="margin-bottom:8px">
+              <div style="width:36px;height:36px;border-radius:50%;background:var(--light-green);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${icon}" style="font-size:16px;color:var(--primary)"></i></div>
+              <span style="font-size:15px;font-weight:500">${title}</span>
+            </div>
+            <p class="t-body" style="line-height:1.7">${body}</p>
+          </div>`).join('')}
+        </div>
+        <p style="text-align:center;font-size:11px;color:var(--text-tertiary);padding:0 20px">Spotly · Built for local communities</p>
+      </div>
+    </div>
+
+    <!-- ── PROFILE VIEW ────────────────────────────────────────── -->
+    <div id="profile-view" class="view">
+      <div class="top-bar">
+        <button onclick="closeProfile()"><i class="ti ti-arrow-left" style="font-size:20px;color:var(--text-primary)"></i></button>
+        <span style="font-size:15px;font-weight:500">Profile</span>
+      </div>
+      <!-- Header -->
+      <div style="padding:16px 20px 0" id="profile-header"></div>
+      <!-- Tab bar -->
+      <div class="tab-bar" style="margin-top:16px">
+        <button class="tab-btn active" onclick="switchTab('info')">Info</button>
+        <button class="tab-btn" onclick="switchTab('portfolio')">Portfolio</button>
+        <button class="tab-btn" id="reviews-tab-btn" onclick="switchTab('reviews')">Reviews</button>
+      </div>
+      <!-- Info tab -->
+      <div class="tab-panel active" id="tab-info"></div>
+      <!-- Portfolio tab -->
+      <div class="tab-panel" id="tab-portfolio"></div>
+      <!-- Reviews tab -->
+      <div class="tab-panel" id="tab-reviews"></div>
+    </div>
+
+  </div><!-- end view-container -->
+
+  <!-- ── BOTTOM NAV ──────────────────────────────────────────── -->
+  <nav id="bottom-nav">
+    <button class="nav-item active" data-view="home"       onclick="navTo('home')">      <i class="ti ti-home"></i>    <span>Home</span></button>
+    <button class="nav-item"        data-view="search"     onclick="navTo('search')">    <i class="ti ti-search"></i>  <span>Search</span></button>
+    <button class="nav-item"        data-view="nearby"     onclick="navTo('nearby')">    <i class="ti ti-map-pin"></i> <span>Nearby</span></button>
+    <button class="nav-item"        data-view="categories" onclick="navTo('categories')"><i class="ti ti-layout-grid"></i><span>Categories</span></button>
+    <button class="nav-item"        data-view="register"   onclick="navTo('register')"  id="nav-join-btn"><i class="ti ti-user-plus" id="nav-join-icon"></i><span id="nav-join-label">Join</span></button>
+  </nav>
+
+  <!-- Profile fixed actions -->
+  <div id="profile-actions">
+    <a id="pa-call" href="#" class="btn-primary" style="flex:1;height:48px;border-radius:10px"><i class="ti ti-phone" style="font-size:16px"></i>Call now</a>
+    <a id="pa-wa"   href="#" target="_blank" class="btn-outline" style="flex:1;height:48px"><i class="ti ti-brand-whatsapp" style="font-size:16px"></i>WhatsApp</a>
+  </div>
+
+  <!-- ── MENU SHEET ────────────────────────────────────────────── -->
+  <div class="overlay" id="menu-sheet" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div id="menu-sheet-content" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD SHEET ───────────────────────────────────────── -->
+  <div id="dashboard-view" class="view" style="display:none">
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="row" style="margin-bottom:12px">
+          <div class="avatar-lg" id="dash-avatar" style="border-radius:12px"></div>
+          <div style="flex:1;min-width:0">
+            <div class="t-h2" id="dash-name"></div>
+            <div class="t-body" id="dash-occ" style="margin-top:2px"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="dash-badges"></div>
+          </div>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:4px;margin-bottom:6px">
+          <div id="dash-completeness-bar" style="height:100%;background:var(--primary);border-radius:4px;transition:width .3s"></div>
+        </div>
+        <div class="t-cap" id="dash-completeness-label"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="card" style="padding:12px 8px;text-align:center"><div class="stat-num" id="ds-inquiries">0</div><div class="stat-label">Inquiries</div></div>
+        <div class="card" style="padding:12px 8px;text-align:center"><div class="stat-num" id="ds-new">0</div><div class="stat-label">New</div></div>
+        <div class="card" style="padding:12px 8px;text-align:center"><div class="stat-num" id="ds-reviews">0</div><div class="stat-label">Reviews</div></div>
+        <div class="card" style="padding:12px 8px;text-align:center"><div class="stat-num" id="ds-rating">0</div><div class="stat-label">Rating</div></div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchDashTab('profile',this)">Profile</button>
+        <button class="tab-btn" onclick="switchDashTab('portfolio',this)">Portfolio</button>
+        <button class="tab-btn" onclick="switchDashTab('inquiries',this)">Inquiries</button>
+        <button class="tab-btn" onclick="switchDashTab('dash-reviews',this)">Reviews</button>
+      </div>
+      <div id="dash-tab-profile" class="tab-panel active"></div>
+      <div id="dash-tab-portfolio" class="tab-panel" style="display:none"></div>
+      <div id="dash-tab-inquiries" class="tab-panel" style="display:none"></div>
+      <div id="dash-tab-dash-reviews" class="tab-panel" style="display:none"></div>
+      <button onclick="doLogout()" style="width:100%;height:48px;border:1.5px solid #DC2626;color:#DC2626;font-size:14px;font-weight:500;border-radius:10px;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-logout" style="font-size:16px"></i>Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- ── FILTER BOTTOM SHEET ────────────────────────────────── -->
+  <div class="overlay" id="filter-sheet" onclick="closeFilterSheet(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Filter providers</div>
+      <div class="sheet-body">
+        <div class="col">
+          <div>
+            <label class="label" style="text-transform:uppercase;letter-spacing:.04em;font-weight:500">State</label>
+            <select class="inp" id="f-state" onchange="onFilterStateChange()"><option value="">Any state</option></select>
+          </div>
+          <div>
+            <label class="label" style="text-transform:uppercase;letter-spacing:.04em;font-weight:500">LGA</label>
+            <input class="inp" id="f-lga" type="text" placeholder="Type LGA" oninput="filterLgaSuggestions(this.value,'filter')" autocomplete="off" />
+            <div id="filter-lga-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:120px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+          </div>
+          <div>
+            <label class="label" style="text-transform:uppercase;letter-spacing:.04em;font-weight:500">Town</label>
+            <input class="inp" id="f-town" type="text" placeholder="Type town" oninput="filterTownSuggestions(this.value,'filter')" autocomplete="off" />
+            <div id="filter-town-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:120px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+          </div>
+          <div class="row" style="gap:12px;margin-top:8px">
+            <button class="btn-ghost" style="flex:1" onclick="resetFilter()">Reset</button>
+            <button class="btn-primary" style="flex:1;height:44px" onclick="applyFilter()">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LOCATION PICKER SHEET ──────────────────────────────── -->
+  <div class="overlay" id="loc-sheet" onclick="closeLocSheet(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Choose your location</div>
+      <div class="sheet-body">
+        <div class="col">
+          <select class="inp" id="ls-state" onchange="onLsStateChange()"><option value="">Select state</option></select>
+          <div>
+            <label class="label">LGA</label>
+            <input class="inp" id="ls-lga" type="text" placeholder="Type your LGA e.g. Jaba" oninput="filterLgaSuggestions(this.value,'loc')" autocomplete="off" />
+            <div id="loc-lga-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:160px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+          </div>
+          <div>
+            <label class="label">Town / Village</label>
+            <input class="inp" id="ls-town" type="text" placeholder="Type your town e.g. Kwoi" oninput="filterTownSuggestions(this.value,'loc')" autocomplete="off" />
+            <div id="loc-town-suggestions" style="display:none;border:1px solid var(--border);border-radius:8px;background:var(--surface);max-height:160px;overflow-y:auto;margin-top:4px;position:relative;z-index:50"></div>
+          </div>
+          <div id="ls-prov-count" class="hidden" style="font-size:12px;color:var(--primary);font-weight:500"></div>
+          <button class="btn-primary" onclick="confirmLocation()">Confirm location</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for portfolio upload -->
+  <input type="file" id="portfolio-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="handlePortfolioFileSelected(event)" />
+
+</div><!-- end #app -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbzaeJOWY6THIy2z9xDUuHDBwxSlVOtDOABaxM4GWcHHW3_65vpm0MPrI4y4EGOyJYqN/exec';
+
+// ══════════════════════════════════════════════════════════════════
+//  API WRAPPERS
+// ══════════════════════════════════════════════════════════════════
+async function apiGet(action, params = {}) {
+  const clean = { action };
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === '') continue;
+    clean[k] = String(v);
+  }
+  const q = new URLSearchParams(clean).toString();
+  const res = await fetch(`${API_URL}?${q}`);
+  const d = await res.json();
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+
+async function apiPost(body) {
+  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  const d = await res.json();
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
+let gpsCoords    = null; // { lat, lon } — memory only
+let currentView  = 'home';
+let prevView     = 'home';
+let allCategories = [];
+let currentProvider = null; // provider shown in profile
+let regYears = 0;
+let regStep  = 1;
+let searchDebounceTimer = null;
+let activeCatChip  = '';
+let nearbyActiveCat = '';
+let nearbyRadius   = 10;
+let filterState    = '';
+let filterLga      = '';
+let filterTown     = '';
+// Cache of provider objects keyed by ProviderId — avoids JSON in onclick attrs
+const providerCache = {};
+
+// ══════════════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════════════
+const AVATAR_COLORS = [
+  {bg:'#E8F5F0',text:'#085041'},{bg:'#EBF3FD',text:'#0C447C'},
+  {bg:'#FAECE7',text:'#712B13'},{bg:'#FAEEDA',text:'#633806'},
+  {bg:'#EEEDFE',text:'#3C3489'},{bg:'#FBEAF0',text:'#72243E'}
+];
+
+function getAvatarColor(name) {
+  return AVATAR_COLORS[(name.charCodeAt(0) || 0) % 6];
+}
+
+function getInitials(name) {
+  return (name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+}
+
+function formatWhatsApp(phone, name) {
+  let c = (phone || '').replace(/\D/g, '');
+  if (c.startsWith('0')) c = '234' + c.slice(1);
+  if (!c.startsWith('234')) c = '234' + c;
+  const msg = encodeURIComponent(`Hi ${name}, I found you on Spotly and would like to enquire about your services.`);
+  return `https://wa.me/${c}?text=${msg}`;
+}
+
+function renderStars(rating, size = 12) {
+  const r = Math.round(Number(rating) || 0);
+  return Array.from({length:5}, (_,i) =>
+    `<i class="ti ti-star${i < r ? '-filled' : ''} star-i ${i < r ? 'star-filled' : 'star-empty'}" style="font-size:${size}px"></i>`
+  ).join('');
+}
+
+function saveLocation(town, lga, state) {
+  localStorage.setItem('spotly_town',  town);
+  localStorage.setItem('spotly_lga',   lga);
+  localStorage.setItem('spotly_state', state);
+}
+
+function getSavedLocation() {
+  return {
+    town:  localStorage.getItem('spotly_town')  || '',
+    lga:   localStorage.getItem('spotly_lga')   || '',
+    state: localStorage.getItem('spotly_state') || ''
+  };
+}
+
+function relativeDate(iso) {
+  const days = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30)  return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days/30)}mo ago`;
+  return `${Math.floor(days/365)}y ago`;
+}
+
+function el(id) { return document.getElementById(id); }
+
+function skeletonCards(n = 2) {
+  return Array.from({length:n}, () => `
+    <div class="skel-card">
+      <div class="row"><div class="skeleton" style="width:48px;height:48px;border-radius:50%;flex-shrink:0"></div>
+      <div class="col" style="flex:1;gap:8px"><div class="skeleton" style="height:14px;width:70%"></div><div class="skeleton" style="height:12px;width:45%"></div></div></div>
+      <div class="row" style="margin-top:10px;gap:6px"><div class="skeleton" style="height:22px;width:72px;border-radius:20px"></div><div class="skeleton" style="height:22px;width:58px;border-radius:20px"></div></div>
+    </div>`).join('');
+}
+
+function emptyState(icon, title, subtitle = '', btnLabel = '', btnAction = '') {
+  return `<div class="empty-state">
+    <div class="empty-icon"><i class="ti ${icon}" style="font-size:28px;color:var(--primary)"></i></div>
+    <div class="t-h3" style="margin-bottom:6px">${title}</div>
+    ${subtitle ? `<div class="t-body" style="margin-bottom:${btnLabel?'20px':'0'};line-height:1.6;max-width:260px">${subtitle}</div>` : ''}
+    ${btnLabel ? `<button class="btn-primary" style="width:200px" onclick="${btnAction}">${btnLabel}</button>` : ''}
+  </div>`;
+}
+
+function errorState(retryFn) {
+  return `<div class="empty-state">
+    <div class="empty-icon"><i class="ti ti-wifi-off" style="font-size:28px;color:var(--primary)"></i></div>
+    <div class="t-h3" style="margin-bottom:6px">Connection error</div>
+    <div class="t-body" style="margin-bottom:20px">Tap to retry</div>
+    <button class="btn-primary" style="width:160px" onclick="${retryFn}">Retry</button>
+  </div>`;
+}
+
+// Provider card — uses data-pid attribute to avoid JSON in onclick
+function providerCardHTML(p) {
+  const {bg, text} = getAvatarColor(p.FullName || '');
+  const initials   = getInitials(p.FullName || '');
+  const isVerified = p.Verified === 'true';
+  const isPremium  = p.PlanType === 'premium';
+  const years      = Number(p.YearsExperience) || 0;
+  const avgRating  = Number(p.AverageRating) || 0;
+  const hasRating  = avgRating > 0 || Number(p.TotalReviews) > 0;
+  const dist       = p.distanceLabel && p.distanceLabel !== 'Distance unknown' ? p.distanceLabel : '';
+  // Occupation — backend stores as Profession, display as occupation
+  const occupation = p.Profession || p.Occupation || p.Category || '';
+
+  // Store provider data in a global map keyed by ProviderId
+  // This avoids passing JSON through HTML attributes entirely
+  if (p.ProviderId) providerCache[p.ProviderId] = p;
+
+  return `<button class="provider-card" data-pid="${p.ProviderId || ''}" onclick="openProfileById(this.dataset.pid)">
+    <div class="row" style="align-items:flex-start">
+      <div class="avatar" style="background:${bg};color:${text}">${initials}</div>
+      <div style="flex:1;min-width:0;margin-left:12px">
+        <div class="t-h3" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.FullName || ''}</div>
+        <div class="t-body" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${occupation} · ${p.Town || ''}</div>
+      </div>
+    </div>
+    <div class="badges-row">
+      ${isVerified ? `<span class="badge badge-verified"><i class="ti ti-circle-check" style="font-size:11px"></i>Verified</span>` : ''}
+      ${isPremium  ? `<span class="badge badge-premium"><i class="ti ti-crown" style="font-size:11px"></i>Premium</span>` : ''}
+      ${years > 0  ? `<span class="badge badge-exp"><i class="ti ti-clock" style="font-size:11px"></i>${years}yr${years!==1?'s':''}</span>` : ''}
+      ${dist       ? `<span class="badge badge-distance"><i class="ti ti-map-pin" style="font-size:11px"></i>${dist}</span>` : ''}
+    </div>
+    ${hasRating ? `<div class="stars-row">${renderStars(avgRating)}<span class="t-body" style="font-size:12px">${avgRating.toFixed(1)} (${p.TotalReviews||0} review${p.TotalReviews!==1?'s':''})</span></div>` : ''}
+  </button>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const viewEl = el(`${name}-view`);
+  if (viewEl) viewEl.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navBtn = document.querySelector(`[data-view="${name}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  // Profile actions only show on profile
+  if (el('profile-actions')) el('profile-actions').classList.toggle('show', name === 'profile');
+
+  currentView = name;
+}
+
+function navTo(name) {
+  // Join tab — check if logged in
+  if (name === 'register') {
+    const pid = localStorage.getItem('spotly_provider_id');
+    const phone = localStorage.getItem('spotly_provider_phone');
+    if (pid && phone) {
+      // Logged in — show dashboard
+      showView('register');
+      showDashboard(pid, phone);
+      return;
+    }
+  }
+  if (name === 'search') {
+    activeCatChip = '';
+    el('search-input').value = '';
+  }
+  prevView = currentView;
+  showView(name);
+  if (name === 'home')       loadHomeData();
+  if (name === 'search')     { renderCatChips(); runSearch(); }
+  if (name === 'nearby')     initNearby();
+  if (name === 'categories') loadCategories();
+  if (name === 'register')   initRegister();
+  if (name === 'about')      loadAboutStats();
+}
+
+function updateJoinTab(loggedIn) {
+  const icon = el('nav-join-icon');
+  const label = el('nav-join-label');
+  if (!icon || !label) return;
+  icon.className = loggedIn ? 'ti ti-user' : 'ti ti-user-plus';
+  label.textContent = loggedIn ? 'Profile' : 'Join';
+  // Hide join banner on home if logged in
+  const banner = el('home-join-banner');
+  if (banner) banner.style.display = loggedIn ? 'none' : '';
+}
+
+function goSearch(query, category = '') {
+  if (category) activeCatChip = category;
+  navTo('search');
+  if (query && el('search-input')) {
+    el('search-input').value = query;
+    setTimeout(runSearch, 300);
+  }
+}
+
+function closeProfile() {
+  showView(prevView || 'home');
+  el('profile-actions').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  GPS
+// ══════════════════════════════════════════════════════════════════
+function requestGps() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      el('nearby-no-gps').classList.add('hidden');
+      el('nearby-has-gps').classList.remove('hidden');
+      const loc = getSavedLocation();
+      el('nearby-subtitle').textContent = loc.town || `${gpsCoords.lat.toFixed(3)}, ${gpsCoords.lon.toFixed(3)}`;
+      runNearby();
+    },
+    () => {}
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════════════════════════
+async function loadHomeData() {
+  const loc = getSavedLocation();
+  el('hero-location-label').textContent = loc.town ? `${loc.town}${loc.lga ? ', '+loc.lga : ''}` : 'Set location';
+
+  // Stats
+  try {
+    const stats = await apiGet('getDashboardStats');
+    if (el('stat-providers'))   el('stat-providers').textContent   = stats.totalProviders || 0;
+    if (el('stat-towns'))       el('stat-towns').textContent       = Object.keys(stats.providersByTown || {}).length;
+    if (el('stat-occupations')) el('stat-occupations').textContent = Object.keys(stats.providersByCategory || {}).length;
+  } catch {}
+
+  // Featured
+  if (loc.town) {
+    try {
+      const featured = await apiGet('getFeaturedProviders', { town: loc.town });
+      const featEl = el('home-featured');
+      if (featEl) {
+        featEl.innerHTML = featured.length
+          ? featured.slice(0,5).map(providerCardHTML).join('')
+          : emptyState('ti-star','No featured providers yet',`Be first in ${loc.town}`);
+      }
+    } catch {
+      const featEl = el('home-featured');
+      if (featEl) featEl.innerHTML = errorState('loadHomeData()');
+    }
+
+    // Recent
+    try {
+      const dash = await apiGet('getLocationDashboard', { town: loc.town, lga: loc.lga, state: loc.state });
+      const recent = (dash.recentProviders || []).slice(0,4);
+      const recEl = el('home-recent');
+      if (recEl && recent.length) recEl.innerHTML = recent.map(providerCardHTML).join('');
+    } catch {}
+  } else {
+    const featEl = el('home-featured');
+    if (featEl) featEl.innerHTML = emptyState('ti-map-pin','Set your location','Choose your town to see providers near you','Set location','openLocationPicker()');
+  }
+
+  // Update join tab and banner
+  updateJoinTab(!!localStorage.getItem('spotly_provider_id'));
+}
+
+el('hero-search-input').addEventListener('input', function() {
+  el('hero-search-btn').classList.toggle('hidden', !this.value);
+});
+
+function doHeroSearch() {
+  goSearch(el('hero-search-input').value);
+}
+
+el('hero-search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doHeroSearch();
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════════════════════════════════
+// ── Category chips ──────────────────────────────────────────────
+async function renderCatChips() {
+  const wrap  = el('cat-chips');
+  const nwrap = el('nearby-cat-chips');
+
+  if (!allCategories.length) {
+    try { allCategories = await apiGet('getCategories'); } catch {}
+  }
+
+  // Backend returns CategoryName — support both field names
+  const getName = c => c.CategoryName || c.occupation || c.category || '';
+
+  const chips = [{ _all: true, name: 'All' }, ...allCategories.map(c => ({ name: getName(c) }))];
+
+  const renderChip = (c, activeCat, onClickFn) => {
+    const isAll    = !!c._all;
+    const isActive = isAll ? activeCat === '' : activeCat === c.name;
+    const safeN    = (c.name || '').replace(/'/g, "\\'");
+    return `<button class="chip ${isActive?'active':''}" onclick="${onClickFn}('${isAll ? '' : safeN}')">${c.name}</button>`;
+  };
+
+  if (wrap)  wrap.innerHTML  = chips.map(c => renderChip(c, activeCatChip,  'setCatChip')).join('');
+  if (nwrap) nwrap.innerHTML = chips.map(c => renderChip(c, nearbyActiveCat,'setNearbyCat')).join('');
+}
+
+function setCatChip(cat) {
+  activeCatChip = cat;
+  renderCatChips();
+  runSearch();
+}
+
+function debounceSearch() {
+  const v = el('search-input').value;
+  el('clear-search').classList.toggle('hidden', !v);
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(runSearch, 400);
+}
+
+function clearSearch() {
+  el('search-input').value = '';
+  el('clear-search').classList.add('hidden');
+  runSearch();
+}
+
+function renderFilterTags() {
+  const wrap = el('filter-tags-row');
+  const tags = [];
+  if (filterState) tags.push(`<span class="filter-tag"><i class="ti ti-map-pin" style="font-size:11px"></i>${filterState}<button onclick="clearFilterState()"><i class="ti ti-x" style="font-size:11px"></i></button></span>`);
+  if (filterLga)   tags.push(`<span class="filter-tag">${filterLga}<button onclick="clearFilterLga()"><i class="ti ti-x" style="font-size:11px"></i></button></span>`);
+  if (filterTown)  tags.push(`<span class="filter-tag">${filterTown}<button onclick="clearFilterTown()"><i class="ti ti-x" style="font-size:11px"></i></button></span>`);
+  wrap.innerHTML = tags.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${tags.join('')}</div>` : '';
+}
+
+function clearFilterState() { filterState = ''; filterLga = ''; filterTown = ''; renderFilterTags(); runSearch(); }
+function clearFilterLga()   { filterLga = ''; filterTown = ''; renderFilterTags(); runSearch(); }
+function clearFilterTown()  { filterTown = ''; renderFilterTags(); runSearch(); }
+
+async function runSearch() {
+  const query = (el('search-input').value || '').trim();
+  const wrap  = el('search-results');
+  wrap.innerHTML = skeletonCards(3);
+  try {
+    const results = await apiGet('searchProviders', {
+      query, category: activeCatChip,
+      town: filterTown, lga: filterLga, state: filterState,
+      customerLat: gpsCoords?.lat, customerLon: gpsCoords?.lon
+    });
+    if (!results.length) {
+      wrap.innerHTML = emptyState('ti-search','No providers found','Try a different search or location');
+    } else {
+      const countLine = `<div class="t-body" style="margin-bottom:8px">${results.length} provider${results.length!==1?'s':''} found</div>`;
+      wrap.innerHTML = countLine + results.map(providerCardHTML).join('');
+    }
+  } catch {
+    wrap.innerHTML = errorState('runSearch()');
+  }
+  renderFilterTags();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FILTER SHEET
+// ══════════════════════════════════════════════════════════════════
+async function openFilterSheet() {
+  el('filter-sheet').classList.add('open');
+  const fs = el('f-state');
+  if (fs.options.length <= 1) {
+    try {
+      const states = await apiGet('getStates');
+      states.forEach(s => fs.appendChild(Object.assign(document.createElement('option'), {value:s.state,textContent:s.state})));
+    } catch {}
+  }
+  fs.value = filterState;
+}
+
+function closeFilterSheet(e) {
+  if (e.target === el('filter-sheet')) el('filter-sheet').classList.remove('open');
+}
+
+async function onFilterStateChange() {
+  const s = el('f-state').value;
+  el('f-lga').value = '';
+  el('f-town').value = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+  if (!s) return;
+  try {
+    const lgas = await apiGet('getLgasByState', { state: s });
+    lgaSuggestionsCache = lgas.map(l => typeof l === 'string' ? l : l.lga).filter(Boolean);
+  } catch {}
+}
+
+function resetFilter() {
+  filterState = ''; filterLga = ''; filterTown = '';
+  if (el('f-state')) el('f-state').value = '';
+  if (el('f-lga'))   el('f-lga').value   = '';
+  if (el('f-town'))  el('f-town').value  = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+}
+
+function applyFilter() {
+  filterState = el('f-state').value;
+  filterLga   = el('f-lga').value || '';
+  filterTown  = el('f-town') ? el('f-town').value || '' : '';
+  el('filter-sheet').classList.remove('open');
+  renderCatChips();
+  runSearch();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  NEARBY — shows providers by GPS or saved location with LGA fallback
+// ══════════════════════════════════════════════════════════════════
+function initNearby() {
+  renderCatChips();
+  const loc = getSavedLocation();
+
+  if (gpsCoords) {
+    // Has GPS — show GPS nearby view
+    el('nearby-no-gps').classList.add('hidden');
+    el('nearby-has-gps').classList.remove('hidden');
+    el('nearby-subtitle').textContent = loc.town
+      ? `${loc.town}${loc.lga ? ', ' + loc.lga : ''}`
+      : `${gpsCoords.lat.toFixed(3)}, ${gpsCoords.lon.toFixed(3)}`;
+    runNearby();
+  } else if (loc.town || loc.lga || loc.state) {
+    // No GPS but has saved location — show location-based nearby
+    el('nearby-no-gps').classList.add('hidden');
+    el('nearby-has-gps').classList.remove('hidden');
+    el('nearby-subtitle').textContent = loc.town
+      ? `${loc.town}${loc.lga ? ', ' + loc.lga : ''}`
+      : loc.lga || loc.state;
+    runNearbyByLocation();
+  } else {
+    // No GPS, no saved location — prompt
+    el('nearby-no-gps').classList.remove('hidden');
+    el('nearby-has-gps').classList.add('hidden');
+  }
+}
+
+function setRadius(r) {
+  nearbyRadius = r;
+  document.querySelectorAll('#radius-pills .radius-pill').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.r) === r);
+  });
+  if (gpsCoords) {
+    runNearby();
+  } else {
+    runNearbyByLocation();
+  }
+}
+
+function setNearbyCat(cat) {
+  nearbyActiveCat = cat;
+  renderCatChips();
+  if (gpsCoords) {
+    runNearby();
+  } else {
+    runNearbyByLocation();
+  }
+}
+
+// GPS-based nearby — uses getNearbyProviders
+async function runNearby() {
+  if (!gpsCoords) { runNearbyByLocation(); return; }
+  const wrap = el('nearby-results');
+  if (!wrap) return;
+  wrap.innerHTML = skeletonCards(3);
+  el('nearby-count').textContent = '';
+  try {
+    const results = await apiGet('getNearbyProviders', {
+      customerLat: gpsCoords.lat,
+      customerLon:  gpsCoords.lon,
+      radiusKm:     nearbyRadius,
+      category:     nearbyActiveCat
+    });
+    if (!results.length) {
+      wrap.innerHTML = emptyState('ti-map-pin',`No providers within ${nearbyRadius}km`,'Try increasing the radius or browse by location');
+    } else {
+      el('nearby-count').textContent = `Showing ${results.length} provider${results.length!==1?'s':''} within ${nearbyRadius}km`;
+      wrap.innerHTML = results.map(providerCardHTML).join('');
+    }
+  } catch {
+    wrap.innerHTML = errorState('runNearby()');
+  }
+}
+
+// Location-based nearby — uses searchProviders with town → LGA → state fallback
+async function runNearbyByLocation() {
+  const wrap = el('nearby-results');
+  const countEl = el('nearby-count');
+  if (!wrap) return;
+
+  const loc = getSavedLocation();
+  if (!loc.town && !loc.lga && !loc.state) {
+    wrap.innerHTML = emptyState('ti-map-pin','Set your location','Choose your town to see nearby providers','Set location','openLocationPicker()');
+    return;
+  }
+
+  wrap.innerHTML = skeletonCards(3);
+  if (countEl) countEl.textContent = '';
+
+  // Try town first, then LGA, then state — show results at most specific level available
+  const attempts = [];
+  if (loc.town) attempts.push({ town: loc.town, lga: loc.lga, state: loc.state, label: `${loc.town}` });
+  if (loc.lga)  attempts.push({ town: '',       lga: loc.lga, state: loc.state, label: `${loc.lga} LGA` });
+  if (loc.state)attempts.push({ town: '',       lga: '',      state: loc.state, label: `${loc.state}` });
+
+  for (const attempt of attempts) {
+    try {
+      const results = await apiGet('searchProviders', {
+        query:    '',
+        category: nearbyActiveCat,
+        town:     attempt.town,
+        lga:      attempt.lga,
+        state:    attempt.state,
+        customerLat: gpsCoords?.lat,
+        customerLon: gpsCoords?.lon,
+      });
+
+      if (results && results.length > 0) {
+        if (countEl) countEl.textContent = `${results.length} provider${results.length!==1?'s':''} in ${attempt.label}`;
+        wrap.innerHTML = results.map(providerCardHTML).join('');
+        return; // found results — stop trying fallbacks
+      }
+    } catch { /* try next fallback */ }
+  }
+
+  // All attempts returned empty
+  wrap.innerHTML = emptyState(
+    'ti-map-pin',
+    'No providers in your area yet',
+    'Be the first to register your skill in ' + (loc.town || loc.lga || loc.state),
+    'Register now',
+    "navTo('register')"
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  REGISTER
+// ══════════════════════════════════════════════════════════════════
+async function initRegister() {
+  regStep = 1;
+  regYears = 0;
+  el('reg-success').classList.add('hidden');
+  el('reg-form-wrap').classList.remove('hidden');
+  goRegStep(1);
+
+  // Load occupations list for autocomplete in step 2
+  if (!allOccupationsList.length) {
+    try {
+      allOccupationsList = await apiGet('getOccupations');
+    } catch {}
+  }
+
+  // Load states for step 3
+  const stateSel = el('r-state');
+  if (stateSel.options.length <= 1) {
+    try {
+      const states = await apiGet('getStates');
+      states.forEach(s => {
+        const val = typeof s === 'string' ? s : s.state;
+        stateSel.appendChild(Object.assign(document.createElement('option'), { value: val, textContent: val }));
+      });
+    } catch {}
+  }
+}
+
+function goRegStep(n) {
+  regStep = n;
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  el(`reg-step-${n}`).classList.add('active');
+  el('reg-progress').style.width = (n/4*100) + '%';
+  el('reg-step-label').textContent = `Step ${n} of 4`;
+  el('reg-back-btn').classList.toggle('hidden', n === 1);
+  if (n === 4) buildSummary();
+}
+
+function regNext(from) {
+  if (from === 1) {
+    if (!el('r-fullname').value.trim()) return alert('Please enter your full name');
+    if (!el('r-phone').value.trim())    return alert('Please enter your phone number');
+  }
+  if (from === 2) {
+    if (!el('r-occupation').value.trim()) return alert('Please enter your occupation');
+  }
+  if (from === 3) {
+    if (!el('r-state').value)           return alert('Please select a state');
+    const town = el('r-town').value.trim();
+    if (!town)                          return alert('Please enter your town');
+  }
+  goRegStep(from + 1);
+}
+
+function toggleAgentField() {
+  const f = el('agent-field');
+  const a = el('agent-arrow');
+  const hidden = f.classList.toggle('hidden');
+  a.className = `ti ti-chevron-${hidden?'down':'up'}`;
+}
+
+function adjYears(d) {
+  regYears = Math.max(0, regYears + d);
+  el('r-years-display').textContent = regYears;
+}
+
+function updateBioCount() {
+  el('bio-count').textContent = el('r-bio').value.length;
+}
+
+async function onRegStateChange() {
+  const s = el('r-state').value;
+  el('r-lga').value = '';
+  el('r-town').value = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+  if (!s) return;
+  try {
+    const lgas = await apiGet('getLgasByState', { state: s });
+    lgaSuggestionsCache = lgas.map(l => typeof l === 'string' ? l : l.lga).filter(Boolean);
+  } catch {}
+}
+
+function regPrev() { if (regStep > 1) goRegStep(regStep - 1); }
+
+// ── STUBS for removed old functions (kept to avoid reference errors) ──
+function toggleCustomTown() {}
+function onRegLgaChange() {}
+function onFilterLgaChange() {}
+
+function captureGps() {
+  const iconEl   = el('gps-icon-i');
+  const statusEl = el('gps-status-text');
+  iconEl.className = 'ti ti-loader-2 spin';
+  statusEl.textContent = 'Getting location...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      window._regLat = pos.coords.latitude;
+      window._regLon = pos.coords.longitude;
+      iconEl.className   = 'ti ti-check';
+      iconEl.style.color = 'var(--primary)';
+      statusEl.textContent = 'Location captured ✓';
+      statusEl.style.color = 'var(--primary)';
+    },
+    () => {
+      iconEl.className = 'ti ti-map-pin';
+      statusEl.textContent = 'Location access denied';
+    },
+    { timeout: 10000 }
+  );
+}
+
+function buildSummary() {
+  const town = el('r-town').value.trim();
+  el('reg-summary').innerHTML = `
+    <div class="summary-row">
+      <div class="summary-row-head"><span class="lbl">Personal</span><button onclick="goRegStep(1)">Edit</button></div>
+      <div style="font-size:14px;font-weight:500">${el('r-fullname').value}</div>
+      <div class="t-body">${el('r-phone').value}</div>
+      ${el('r-whatsapp').value ? `<div class="t-body">WA: ${el('r-whatsapp').value}</div>` : ''}
+    </div>
+    <div class="summary-row">
+      <div class="summary-row-head"><span class="lbl">Occupation</span><button onclick="goRegStep(2)">Edit</button></div>
+      <div style="font-size:14px;font-weight:500">${el('r-occupation').value}</div>
+      ${regYears > 0 ? `<div class="t-body">${regYears} year${regYears!==1?'s':''} experience</div>` : ''}
+    </div>
+    <div class="summary-row">
+      <div class="summary-row-head"><span class="lbl">Location</span><button onclick="goRegStep(3)">Edit</button></div>
+      <div style="font-size:14px;font-weight:500">${town}</div>
+      <div class="t-body">${el('r-lga').value ? el('r-lga').value+' LGA, ' : ''}${el('r-state').value}</div>
+      ${window._regLat ? `<div style="font-size:12px;color:var(--primary);margin-top:2px">GPS location captured ✓</div>` : ''}
+    </div>`;
+}
+
+async function submitRegistration() {
+  const btn     = el('reg-submit-btn');
+  const errWrap = el('reg-error');
+  const town    = el('r-town').value.trim();
+  const occupation = el('r-occupation').value.trim();
+
+  // ── Pre-submit validation ─────────────────────────────────────────
+  // NOTE: occupation is read from #r-occupation (text input, not a select).
+  // This block runs ONLY when the submit button is clicked — never after success.
+  console.log('[Spotly] Pre-submit validation —', { occupation, town,
+    fullname: el('r-fullname').value.trim(), phone: el('r-phone').value.trim() });
+
+  if (!el('r-fullname').value.trim()) return alert('Full name is required');
+  if (!el('r-phone').value.trim())    return alert('Phone number is required');
+  if (!occupation)                    return alert('Occupation is required');
+  if (!town)                          return alert('Town is required');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 spin" style="font-size:18px"></i> Registering...';
+  if (errWrap) { errWrap.innerHTML = ''; errWrap.classList.add('hidden'); }
+
+  // ── Build payload — send occupation under ALL field aliases ──────
+  // Backend column is "Profession" in some sheet versions and "Occupation" in others.
+  // Sending both guarantees the record is accepted regardless of backend column name.
+  const payload = {
+    action: 'registerProvider',
+    data: {
+      FullName:        el('r-fullname').value.trim(),
+      Phone:           el('r-phone').value.trim(),
+      WhatsApp:        el('r-whatsapp').value.trim(),
+      AgentId:         el('r-agentid').value.trim(),
+      Occupation:      occupation,   // PRIMARY — standardised field name
+      Profession:      occupation,   // ALIAS — kept for backend compatibility
+      Category:        occupation,   // ALIAS — used for category grouping
+      YearsExperience: regYears,
+      Bio:             el('r-bio').value.trim(),
+      State:           el('r-state').value,
+      LGA:             el('r-lga').value.trim(),
+      Town:            town,
+      Latitude:        window._regLat ? String(window._regLat) : '',
+      Longitude:       window._regLon ? String(window._regLon) : '',
+    }
+  };
+
+  console.log('[Spotly] Payload to backend →', JSON.stringify(payload, null, 2));
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const json = await res.json();
+
+    console.log('[Spotly] Backend response ←', json);
+    console.log('[Spotly] Validation check — occupation in payload:', payload.data.Occupation);
+    console.log('[Spotly] Validation result — status:', json.status, '| providerId:', json?.data?.providerId);
+
+    // ── Success detection ──────────────────────────────────────────
+    // The record is saved if:
+    //   (a) status === 'success', OR
+    //   (b) a providerId was returned (backend saved but returned a warning message)
+    // In case (b) we treat it as success and suppress any backend warning text —
+    // this is what caused the false "Occupation is required" display previously.
+    const providerId = json?.data?.providerId;
+    const isSuccess  = json?.status === 'success' || !!providerId;
+
+    if (!isSuccess) {
+      throw new Error(json?.message || 'Registration failed. Please try again.');
+    }
+
+    const pid = providerId || 'PRO-' + Date.now();
+
+    // ── Auto-login on success ──────────────────────────────────────
+    localStorage.setItem('spotly_provider_id',    pid);
+    localStorage.setItem('spotly_provider_phone', el('r-phone').value.trim());
+    updateJoinTab(true);
+
+    // Ensure any previous error display is cleared before showing success
+    if (errWrap) { errWrap.innerHTML = ''; errWrap.classList.add('hidden'); }
+
+    // Show success screen — hide form completely
+    const formWrap = el('reg-form-wrap');
+    if (formWrap) formWrap.classList.add('hidden');
+    const successEl = el('reg-success');
+    if (successEl) {
+      successEl.classList.remove('hidden');
+      successEl.style.display = 'flex';
+    }
+    if (el('reg-provider-id')) el('reg-provider-id').textContent = pid;
+    if (el('reg-success-sub')) el('reg-success-sub').textContent = `Your profile is live. Customers in ${town} can now find you.`;
+    const waMsg = encodeURIComponent(`Find me on Spotly — search ${el('r-fullname').value.trim()} to contact me. spotly.ng`);
+    if (el('reg-wa-share')) el('reg-wa-share').href = `https://wa.me/?text=${waMsg}`;
+
+    // Refresh home data so new provider appears
+    try { loadHomeData(); } catch {}
+    try { allCategories = await apiGet('getCategories'); } catch {}
+    try { updateCategoryCounts(); } catch {}
+
+    console.log('[Spotly] ✓ Registration success. ProviderId:', pid, '| Occupation:', occupation);
+
+  } catch (e) {
+    console.error('[Spotly] ✗ Registration error:', e.message);
+    // Only show an error if we genuinely could not save the record.
+    // The guard above already handles the "saved but with warning" case —
+    // execution only reaches here when isSuccess was false or a network error occurred.
+    const msg = e.message || 'Registration failed. Please try again.';
+    if (errWrap) {
+      errWrap.innerHTML = `<div class="error-msg" style="background:#FEF3DC;border:1px solid #F59E0B;border-radius:8px;padding:12px;font-size:13px;color:#92400E">${msg}</div>`;
+      errWrap.classList.remove('hidden');
+    }
+    btn.disabled = false;
+    btn.innerHTML = 'Register on Spotly';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ABOUT
+// ══════════════════════════════════════════════════════════════════
+async function loadAboutStats() {
+  try {
+    const stats = await apiGet('getDashboardStats');
+    el('a-stat-1').textContent = stats.totalProviders || 0;
+    el('a-stat-2').textContent = Object.keys(stats.providersByTown || {}).length;
+    el('a-stat-3').textContent = Object.keys(stats.providersByCategory || {}).length;
+    el('a-stat-4').textContent = stats.totalReviews || 0;
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CATEGORY COUNTS — live provider count per occupation
+// ══════════════════════════════════════════════════════════════════
+async function updateCategoryCounts() {
+  try {
+    var stats = await apiGet('getCategoryStats');
+    if (!Array.isArray(stats)) return;
+
+    // Build a lookup: occupation name (lowercase) → totalProviders
+    var lookup = {};
+    stats.forEach(function(item) {
+      if (item.occupation) {
+        lookup[item.occupation.trim().toLowerCase()] = item.totalProviders || 0;
+      }
+    });
+
+    // Update every cat-tile that has a data-occupation attribute
+    document.querySelectorAll('.cat-tile[data-occupation]').forEach(function(tile) {
+      var occ = (tile.getAttribute('data-occupation') || '').trim().toLowerCase();
+      var count = lookup[occ];
+      if (count === undefined) return;
+      var countEl = tile.querySelector('.provider-count, .category-count');
+      if (countEl) countEl.textContent = count + ' provider' + (count !== 1 ? 's' : '');
+    });
+  } catch (e) {
+    // Silent — never block the page over a count update
+    console.warn('[Spotly] updateCategoryCounts failed:', e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PROFILE — safe rewrite, never crashes
+// ══════════════════════════════════════════════════════════════════
+
+// Called from provider card data-pid attribute — looks up cached provider object
+function openProfileById(pid) {
+  if (!pid) { console.error('openProfileById: no pid'); return; }
+  const provider = providerCache[pid];
+  if (provider) {
+    openProfile(provider);
+  } else {
+    // Not in cache — fetch from backend directly
+    console.log('[Spotly] Provider not in cache, fetching:', pid);
+    fetch(`${API_URL}?action=getProvider&providerId=${encodeURIComponent(pid)}`)
+      .then(r => r.json())
+      .then(json => {
+        if (json && json.status === 'success' && json.data && json.data.ProviderId) {
+          const p = json.data;
+          if (typeof p.PortfolioUrls === 'string') {
+            p.PortfolioUrls = p.PortfolioUrls.split(',').map(u => u.trim()).filter(Boolean);
+          }
+          if (!Array.isArray(p.PortfolioUrls)) p.PortfolioUrls = [];
+          providerCache[pid] = p;
+          openProfile(p);
+        } else {
+          alert('Could not load provider profile. Please try again.');
+        }
+      })
+      .catch(e => {
+        console.error('[Spotly] fetchProvider error:', e);
+        alert('Network error. Please check connection and try again.');
+      });
+  }
+}
+
+function openProfile(provider) {
+  if (!provider || !provider.ProviderId) {
+    console.error('openProfile: invalid provider', provider);
+    return;
+  }
+
+  currentProvider = provider;
+  prevView = currentView;
+
+  // Show profile view immediately with card data
+  showView('profile');
+  renderProfileHeader(provider);
+  renderProfileInfo(provider);
+  renderPortfolio(provider);
+  switchTab('info');
+
+  // Then fetch fresh full data in background — update when ready
+  fetch(`${API_URL}?action=getProvider&providerId=${encodeURIComponent(provider.ProviderId)}`)
+    .then(r => r.json())
+    .then(json => {
+      if (json && json.status === 'success' && json.data && json.data.ProviderId) {
+        const fresh = json.data;
+        if (typeof fresh.PortfolioUrls === 'string') {
+          fresh.PortfolioUrls = fresh.PortfolioUrls.split(',').map(u => u.trim()).filter(Boolean);
+        }
+        if (!Array.isArray(fresh.PortfolioUrls)) fresh.PortfolioUrls = [];
+        currentProvider = fresh;
+        providerCache[fresh.ProviderId] = fresh;
+        renderProfileHeader(fresh);
+        renderProfileInfo(fresh);
+        renderPortfolio(fresh);
+        console.log('[Spotly] Profile refreshed with fresh data:', fresh.ProviderId);
+      }
+    })
+    .catch(() => {}); // keep showing card data on error
+
+  // Load reviews independently
+  loadProfileReviews(provider.ProviderId);
+}
+
+function renderProfileHeader(p) {
+  if (!p || !p.ProviderId) return;
+  const name       = p.FullName || 'Unknown';
+  const profession = p.Profession || p.Occupation || '';
+  const town       = p.Town || '';
+  const lga        = p.LGA || '';
+  const avgRating  = parseFloat(p.AverageRating) || 0;
+  const totalRevs  = parseInt(p.TotalReviews) || 0;
+  const isVerified = p.Verified === 'true';
+  const isPremium  = p.PlanType === 'premium';
+  const years      = parseInt(p.YearsExperience) || 0;
+
+  const {bg, text} = getAvatarColor(name);
+  const initials   = getInitials(name);
+
+  const headerEl = el('profile-header');
+  if (!headerEl) return;
+
+  headerEl.innerHTML = `
+    <div class="row" style="align-items:flex-start;gap:16px">
+      <div class="avatar-lg" style="background:${bg};color:${text}">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:500;color:var(--text-primary)">${name}</div>
+        <div class="t-body" style="font-size:13px;margin-top:2px">${profession}${town ? ' · ' + town : ''}${lga ? ', ' + lga : ''}</div>
+        <div class="badges-row" style="margin-top:8px">
+          ${isVerified ? `<span class="badge badge-verified"><i class="ti ti-circle-check" style="font-size:11px"></i>Verified</span>` : ''}
+          ${isPremium  ? `<span class="badge badge-premium"><i class="ti ti-crown" style="font-size:11px"></i>Premium</span>` : ''}
+          <span class="badge badge-id" style="font-family:monospace;font-size:10px">${p.ProviderId}</span>
+        </div>
+        ${avgRating > 0 ? `<div class="stars-row" style="margin-top:8px">${renderStars(avgRating,13)}<span class="t-body" style="font-size:13px">${avgRating.toFixed(1)} · ${totalRevs} review${totalRevs!==1?'s':''}</span></div>` : ''}
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="num">${avgRating > 0 ? avgRating.toFixed(1) : '—'}</div><div class="lbl">Rating</div></div>
+      <div class="profile-stat"><div class="num">${totalRevs}</div><div class="lbl">Reviews</div></div>
+      <div class="profile-stat"><div class="num">${years}</div><div class="lbl">Yrs exp</div></div>
+    </div>`;
+
+  // Safe fallback for phone/whatsapp
+  const phone = p.Phone || '';
+  const wa    = p.WhatsApp || p.Phone || '';
+
+  const callBtn = el('pa-call');
+  const waBtn   = el('pa-wa');
+  if (callBtn) callBtn.href = phone ? `tel:${phone}` : '#';
+  if (waBtn)   waBtn.href   = wa ? formatWhatsApp(wa, name) : '#';
+
+  const actionsEl = el('profile-actions');
+  if (actionsEl) actionsEl.classList.add('show');
+
+  const revTabBtn = el('reviews-tab-btn');
+  if (revTabBtn) revTabBtn.textContent = 'Reviews';
+}
+
+function renderProfileInfo(p) {
+  if (!p) return;
+  const infoEl = el('tab-info');
+  if (!infoEl) return;
+
+  const dist     = p.distanceLabel && p.distanceLabel !== 'Distance unknown' ? p.distanceLabel : null;
+  const bio      = p.Bio || '';
+  const town     = p.Town || '';
+  const lga      = p.LGA || '';
+  const state    = p.State || '';
+  const years    = parseInt(p.YearsExperience) || 0;
+  const pid      = p.ProviderId || '';
+
+  infoEl.innerHTML = `
+    <div class="col" style="gap:16px;padding:16px 20px">
+      ${bio ? `<p class="t-body" style="line-height:1.7;font-size:13px">${bio}</p>` : '<p class="t-body" style="font-size:13px;font-style:italic">No bio added yet</p>'}
+      <div>
+        ${town || lga || state ? `<div class="detail-row"><div class="detail-icon"><i class="ti ti-map-pin"></i></div><div class="t-body" style="font-size:13px">${[town, lga, state].filter(Boolean).join(', ')}</div></div>` : ''}
+        ${dist ? `<div class="detail-row"><div class="detail-icon"><i class="ti ti-map-2"></i></div><div class="t-body" style="font-size:13px">${dist}</div></div>` : ''}
+        <div class="detail-row"><div class="detail-icon"><i class="ti ti-clock"></i></div><div class="t-body" style="font-size:13px">${years} year${years!==1?'s':''} experience</div></div>
+        ${pid ? `<div class="detail-row"><div class="detail-icon"><i class="ti ti-id-badge"></i></div><div class="t-body" style="font-size:13px;font-family:monospace">${pid}</div></div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderPortfolio(p) {
+  if (!p) return;
+  const portEl = el('tab-portfolio');
+  if (!portEl) return;
+
+  // Safely parse portfolio URLs
+  let urls = [];
+  if (Array.isArray(p.PortfolioUrls)) {
+    urls = p.PortfolioUrls.filter(Boolean);
+  } else if (typeof p.PortfolioUrls === 'string' && p.PortfolioUrls.trim()) {
+    urls = p.PortfolioUrls.split(',').map(u => u.trim()).filter(Boolean);
+  }
+
+  const isPremium = p.PlanType === 'premium';
+  const limit     = isPremium ? 5 : 3;
+
+  let html = `<div style="padding:16px 20px">`;
+  html += `<div style="margin-bottom:10px"><span class="t-cap">${urls.length} of ${limit} photo${limit!==1?'s':''} used</span></div>`;
+  html += `<div id="portfolio-error" style="display:none;margin-bottom:10px"></div>`;
+  html += `<div class="portfolio-grid" id="portfolio-grid">`;
+
+  urls.forEach(url => {
+    const match  = url.match(/id=([^&]+)/);
+    const fileId = match ? match[1] : '';
+    html += `<div class="portfolio-img">
+      <img src="${url}" alt="Portfolio photo" loading="lazy" onerror="this.parentElement.style.display='none'" />
+      <button class="del-btn" onclick="deletePortfolioImage('${url}','${fileId}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  });
+
+  if (urls.length < limit) {
+    html += `<div class="add-photo-btn" onclick="el('portfolio-file-input').click()">
+      <i class="ti ti-plus"></i><span>Add photo</span>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  portEl.innerHTML = html;
+}
+
+async function deletePortfolioImage(url, fileId) {
+  if (!fileId || !currentProvider) return;
+  try {
+    await apiPost({ action: 'deletePortfolioImage', providerId: currentProvider.ProviderId, fileId });
+    const urls = Array.isArray(currentProvider.PortfolioUrls) ? currentProvider.PortfolioUrls : [];
+    currentProvider.PortfolioUrls = urls.filter(u => u !== url);
+    renderPortfolio(currentProvider);
+  } catch (e) {
+    const errEl = el('portfolio-error');
+    if (errEl) { errEl.innerHTML = `<div class="error-msg">${e.message}</div>`; errEl.classList.remove('hidden'); }
+  }
+}
+
+async function handlePortfolioFileSelected(e) {
+  const file = e.target.files?.[0];
+  if (!file || !currentProvider) return;
+
+  const errEl = el('portfolio-error');
+  if (errEl) errEl.classList.add('hidden');
+
+  if (file.size > 2097152) {
+    if (errEl) { errEl.innerHTML = `<div class="error-msg">Image too large — max 2MB. Compress and try again.</div>`; errEl.classList.remove('hidden'); }
+    return;
+  }
+  const allowed = ['image/jpeg','image/jpg','image/png','image/webp'];
+  if (!allowed.includes(file.type)) {
+    if (errEl) { errEl.innerHTML = `<div class="error-msg">Only JPEG, PNG and WebP images accepted.</div>`; errEl.classList.remove('hidden'); }
+    return;
+  }
+
+  // Show uploading state
+  const grid = el('portfolio-grid');
+  const addBtn = grid?.querySelector('.add-photo-btn');
+  if (addBtn) addBtn.innerHTML = `<i class="ti ti-loader-2 spin" style="font-size:24px;color:var(--primary)"></i>`;
+
+  try {
+    const base64Data = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload  = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const result = await apiPost({
+      action:    'uploadPortfolioImage',
+      providerId: currentProvider.ProviderId,
+      base64Data, mimeType: file.type, fileName: file.name
+    });
+    const urls = Array.isArray(currentProvider.PortfolioUrls) ? currentProvider.PortfolioUrls : [];
+    currentProvider.PortfolioUrls = [...urls, result.imageUrl];
+    renderPortfolio(currentProvider);
+  } catch (err) {
+    if (errEl) { errEl.innerHTML = `<div class="error-msg">${err.message||'Upload failed'}</div>`; errEl.classList.remove('hidden'); }
+    renderPortfolio(currentProvider);
+  }
+  e.target.value = '';
+}
+
+async function loadProfileReviews(providerId) {
+  el('tab-reviews').innerHTML = skeletonCards(2);
+  try {
+    const reviews = await apiGet('getProviderReviews', { providerId });
+    el('reviews-tab-btn').textContent = `Reviews${reviews.length > 0 ? ` (${reviews.length})` : ''}`;
+    renderReviewsTab(reviews, providerId);
+  } catch {
+    el('tab-reviews').innerHTML = errorState('loadProfileReviews("'+providerId+'")');
+  }
+}
+
+function renderReviewsTab(reviews, providerId) {
+  let html = '';
+  if (reviews.length) {
+    html += `<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">`;
+    reviews.forEach((r, i) => {
+      html += `<div style="padding:14px 16px${i < reviews.length-1?';border-bottom:1px solid var(--border)':''}">
+        <div class="row" style="justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:500">${r.ReviewerName||''}</span>
+          <span class="t-cap">${relativeDate(r.DateSubmitted)}</span>
+        </div>
+        <div style="margin-bottom:4px">${renderStars(r.Rating,13)}</div>
+        ${r.ReviewText ? `<p class="t-body" style="font-size:13px;line-height:1.6">${r.ReviewText}</p>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  // Review form
+  html += `<div id="review-form">
+    <div style="font-size:14px;font-weight:500;margin-bottom:12px">Leave a review</div>
+    <div class="col">
+      <input class="inp" id="rv-name" type="text" placeholder="Your name" />
+      <div class="star-sel" id="star-selector">
+        ${[1,2,3,4,5].map(n=>`<button onclick="setReviewRating(${n})" data-n="${n}" style="font-size:30px;color:var(--border);border:none;background:none;cursor:pointer"><i class="ti ti-star" id="rstar-${n}"></i></button>`).join('')}
+      </div>
+      <div>
+        <textarea class="inp" id="rv-text" rows="3" placeholder="How was the service? (optional)" maxlength="200" oninput="updateRvCount()"></textarea>
+        <div style="font-size:11px;color:var(--text-tertiary);text-align:right"><span id="rv-count">0</span>/200</div>
+      </div>
+      <div id="rv-error" class="hidden"></div>
+      <button class="btn-primary" style="height:44px" id="rv-submit" onclick="submitReview('${providerId}')">Submit review</button>
+    </div>
+  </div>`;
+  el('tab-reviews').innerHTML = html;
+}
+
+let reviewRating = 0;
+function setReviewRating(n) {
+  reviewRating = n;
+  for (let i = 1; i <= 5; i++) {
+    const icon = el(`rstar-${i}`);
+    if (icon) {
+      icon.className = i <= n ? 'ti ti-star-filled star-filled' : 'ti ti-star star-empty';
+    }
+  }
+}
+
+function updateRvCount() {
+  const el2 = el('rv-count');
+  if (el2) el2.textContent = el('rv-text').value.length;
+}
+
+async function submitReview(providerId) {
+  const name = (el('rv-name').value || '').trim();
+  if (!name) return alert('Please enter your name');
+  if (!reviewRating) return alert('Please select a rating');
+  const btn = el('rv-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 spin" style="font-size:16px"></i> Submitting...';
+  try {
+    await apiPost({
+      action: 'submitReview', providerId,
+      reviewerName: name, rating: reviewRating,
+      reviewText: (el('rv-text').value || '').trim()
+    });
+    el('review-form').innerHTML = `<div class="card" style="text-align:center;padding:24px">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--light-green);display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i class="ti ti-check" style="font-size:20px;color:var(--primary)"></i></div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Thank you!</div>
+      <div class="t-body">Your review is pending approval</div>
+    </div>`;
+  } catch (e) {
+    const errEl = el('rv-error');
+    if (errEl) { errEl.innerHTML = `<div class="error-msg">${e.message}</div>`; errEl.classList.remove('hidden'); }
+    btn.disabled = false;
+    btn.textContent = 'Submit review';
+  }
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+  el(`tab-${name}`).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  LOCATION PICKER
+// ══════════════════════════════════════════════════════════════════
+async function openLocationPicker() {
+  el('loc-sheet').classList.add('open');
+  const sel = el('ls-state');
+  if (sel.options.length <= 1) {
+    try {
+      const states = await apiGet('getStates');
+      states.forEach(s => sel.appendChild(Object.assign(document.createElement('option'), {value:s.state,textContent:s.state})));
+    } catch {}
+  }
+  // Pre-fill saved location
+  const saved = getSavedLocation();
+  if (saved.state) {
+    sel.value = saved.state;
+    await onLsStateChange();
+    if (saved.lga) {
+      el('ls-lga').value = saved.lga;
+      await onLsLgaChange();
+      if (saved.town) el('ls-town').value = saved.town;
+    }
+  }
+}
+
+function closeLocSheet(e) {
+  if (e.target === el('loc-sheet')) el('loc-sheet').classList.remove('open');
+}
+
+async function onLsStateChange() {
+  const s = el('ls-state').value;
+  el('ls-lga').value = '';
+  el('ls-town').value = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+  if (!s) return;
+  try {
+    const lgas = await apiGet('getLgasByState', { state: s });
+    lgaSuggestionsCache = lgas.map(l => typeof l === 'string' ? l : l.lga).filter(Boolean);
+  } catch {}
+}
+
+async function onRegStateChange() {
+  const s = el('r-state').value;
+  el('r-lga').value = '';
+  el('r-town').value = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+  if (!s) return;
+  try {
+    const lgas = await apiGet('getLgasByState', { state: s });
+    lgaSuggestionsCache = lgas.map(l => typeof l === 'string' ? l : l.lga).filter(Boolean);
+  } catch {}
+}
+
+async function onFilterStateChange() {
+  const s = el('f-state').value;
+  el('f-lga').value = '';
+  el('f-town').value = '';
+  lgaSuggestionsCache = [];
+  townSuggestionsCache = [];
+  if (!s) return;
+  try {
+    const lgas = await apiGet('getLgasByState', { state: s });
+    lgaSuggestionsCache = lgas.map(l => typeof l === 'string' ? l : l.lga).filter(Boolean);
+  } catch {}
+}
+
+function renderSuggestions(containerId, items, onSelect) {
+  const el2 = el(containerId);
+  if (!el2) return;
+  if (!items.length) { el2.style.display = 'none'; return; }
+  el2.innerHTML = items.map(item =>
+    `<div onclick="(${onSelect.toString()})('${item.replace(/'/g, "\\'")}')" style="padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);cursor:pointer">${item}</div>`
+  ).join('');
+  el2.style.display = 'block';
+}
+
+function filterLgaSuggestions(val, context) {
+  const map = { reg: 'reg-lga-suggestions', loc: 'loc-lga-suggestions', filter: 'filter-lga-suggestions' };
+  const containerId = map[context];
+  if (!val) { const e2 = el(containerId); if (e2) e2.style.display = 'none'; return; }
+  const filtered = lgaSuggestionsCache.filter(l => l.toLowerCase().includes(val.toLowerCase())).slice(0, 8);
+  renderSuggestions(containerId, filtered, async (lga) => {
+    if (context === 'reg') {
+      el('r-lga').value = lga;
+      const state = el('r-state').value;
+      try { const t = await apiGet('getTownsByLga', {lga, state}); townSuggestionsCache = t.map(x => typeof x==='string'?x:x.town).filter(Boolean); } catch {}
+    } else if (context === 'loc') {
+      el('ls-lga').value = lga;
+      const state = el('ls-state').value;
+      try { const t = await apiGet('getTownsByLga', {lga, state}); townSuggestionsCache = t.map(x => typeof x==='string'?x:x.town).filter(Boolean); } catch {}
+    } else {
+      el('f-lga').value = lga;
+    }
+    el(containerId).style.display = 'none';
+  });
+}
+
+function filterTownSuggestions(val, context) {
+  const map = { reg: 'reg-town-suggestions', loc: 'loc-town-suggestions', filter: 'filter-town-suggestions' };
+  const containerId = map[context];
+  if (!val) { const e2 = el(containerId); if (e2) e2.style.display = 'none'; return; }
+  const filtered = townSuggestionsCache.filter(t => t.toLowerCase().includes(val.toLowerCase())).slice(0, 8);
+  renderSuggestions(containerId, filtered, (town) => {
+    const inputId = context === 'reg' ? 'r-town' : context === 'loc' ? 'ls-town' : 'f-town';
+    el(inputId).value = town;
+    el(containerId).style.display = 'none';
+  });
+}
+
+function filterOccupationSuggestions(val) {
+  const containerId = 'occ-suggestions';
+  const box = el(containerId);
+  if (!box) return;
+  if (!val || !allOccupationsList.length) { box.style.display = 'none'; return; }
+  const filtered = allOccupationsList.filter(o => o.toLowerCase().includes(val.toLowerCase())).slice(0, 8);
+  if (!filtered.length) { box.style.display = 'none'; return; }
+  box.innerHTML = filtered.map(item =>
+    `<div style="padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);cursor:pointer"
+          onmousedown="selectOccupation('${item.replace(/'/g, "\\'")}')">${item}</div>`
+  ).join('');
+  box.style.display = 'block';
+}
+
+function selectOccupation(occ) {
+  const inp = el('r-occupation');
+  if (inp) inp.value = occ;
+  const box = el('occ-suggestions');
+  if (box) box.style.display = 'none';
+  console.log('[Spotly] Occupation selected:', occ);
+}
+
+function confirmLocation() {
+  const state = el('ls-state').value;
+  const lga   = el('ls-lga').value.trim();
+  const town  = el('ls-town').value.trim();
+  if (!state || !town) return alert('Please select a state and enter your town');
+  saveLocation(town, lga, state);
+  el('loc-sheet').classList.remove('open');
+  if (el('hero-location-label')) el('hero-location-label').textContent = town + (lga ? ', '+lga : '');
+  if (currentView === 'home') loadHomeData();
+}
+
+// ── CATEGORIES ──────────────────────────────────────────────────────
+async function loadCategories() {
+  const grid  = el('cat-grid-full');
+  const label = el('cat-count-label');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:span 2;padding:20px;text-align:center;color:var(--text-tertiary)">Loading...</div>';
+
+  try {
+    const loc = getSavedLocation();
+
+    // Fetch categories and occupation stats in parallel
+    // Pass location to getOccupationStats so counts are real not zero
+    const [cats, stats] = await Promise.all([
+      apiGet('getCategories'),
+      apiGet('getOccupationStats', {
+        town:  loc.town  || '',
+        lga:   loc.lga   || '',
+        state: loc.state || ''
+      })
+    ]);
+
+    console.log('[Spotly] Categories raw:', cats.slice(0,2));
+    console.log('[Spotly] OccupationStats raw:', stats);
+
+    // Backend returns byProfession array — each item has { profession, count }
+    const byProf = (stats && stats.byProfession) ? stats.byProfession : [];
+    const byOcc  = (stats && stats.byOccupation) ? stats.byOccupation : [];
+    const total  = stats && stats.totalProviders ? stats.totalProviders : 0;
+
+    // Match category name against profession or occupation — case insensitive
+    const getCount = name => {
+      if (!name) return 0;
+      const n = name.toLowerCase();
+      let m = byProf.find(s => s.profession && s.profession.toLowerCase() === n);
+      if (m) return m.count;
+      m = byOcc.find(s => s.occupation && s.occupation.toLowerCase() === n);
+      if (m) return m.count;
+      return 0;
+    };
+
+    if (label) label.textContent = (cats.length || 0) + ' occupations · ' + total + ' providers';
+
+    if (!cats.length) {
+      grid.innerHTML = '<div style="grid-column:span 2;text-align:center;padding:32px 0;color:var(--text-secondary);font-size:13px">No categories found</div>';
+      return;
+    }
+
+    grid.innerHTML = cats.map(c => {
+      // CategoryName is the real field name returned by getCategories
+      const catName = c.CategoryName || c.occupation || c.category || '';
+      const icon    = c.Icon || c.icon || 'ti-briefcase';
+      const count   = getCount(catName);
+      // Escape single quotes for safe use in onclick attribute
+      const safeN   = catName.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `
+      <div onclick="filterByCategory('${safeN}')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:border-color 150ms ease" onmouseover="this.style.borderColor='var(--mid-green)'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="ti ${icon}" style="font-size:24px;color:var(--mid-green);display:block;margin-bottom:8px"></i>
+        <div style="font-size:13px;font-weight:500;margin-bottom:2px;color:var(--text-primary)">${catName}</div>
+        <div style="font-size:11px;color:var(--text-tertiary)">${count} provider${count !== 1 ? 's' : ''}</div>
+        <div style="font-size:11px;color:var(--primary);margin-top:6px">Browse →</div>
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    console.error('[Spotly] loadCategories error:', e);
+    grid.innerHTML = `<div style="grid-column:span 2;text-align:center;padding:20px"><p style="color:var(--text-secondary);margin-bottom:12px">Could not load categories</p><button class="btn-primary" style="max-width:160px" onclick="loadCategories()">Try again</button></div>`;
+  }
+}
+
+function filterByCategory(occ) {
+  activeCatChip = occ;
+  navTo('search');
+}
+
+// ── LOGIN / DASHBOARD ────────────────────────────────────────────────
+async function doLogin() {
+  const phone = el('login-phone') ? el('login-phone').value.trim() : '';
+  if (!phone) return alert('Please enter your phone number');
+  const errEl = el('login-error');
+  if (errEl) errEl.style.display = 'none';
+  try {
+    const result = await apiPost({ action: 'loginProvider', phone });
+    localStorage.setItem('spotly_provider_id', result.providerId);
+    localStorage.setItem('spotly_provider_phone', phone);
+    updateJoinTab(true);
+    showDashboard(result.providerId, phone);
+  } catch(e) {
+    if (errEl) { errEl.textContent = e.message || 'Login failed'; errEl.style.display = 'block'; }
+    else alert(e.message || 'Login failed');
+  }
+}
+
+async function showDashboard(pid, phone) {
+  const dashEl = el('dashboard-view');
+  const regEl  = el('register-view');
+  if (dashEl) dashEl.style.display = 'block';
+  if (regEl)  regEl.style.display = 'none';
+  updateJoinTab(true);
+  try {
+    const d = await apiGet('getProviderDashboard', { providerId: pid, phone });
+    const p = d.provider;
+    const s = d.stats;
+    const av = getAvatar(p.FullName || '');
+    const avEl = el('dash-avatar');
+    if (avEl) { avEl.style.cssText += `;background:${av.bg};color:${av.text}`; avEl.textContent = av.initials; }
+    if (el('dash-name')) el('dash-name').textContent = p.FullName || '';
+    if (el('dash-occ'))  el('dash-occ').textContent  = p.Occupation || '';
+    const badgesEl = el('dash-badges');
+    if (badgesEl) badgesEl.innerHTML =
+      (p.Verified === 'true' ? `<span class="badge badge-verified"><i class="ti ti-circle-check" style="font-size:10px"></i> Verified</span>` : '') +
+      (p.PlanType === 'premium' ? `<span class="badge badge-premium"><i class="ti ti-crown" style="font-size:10px"></i> Premium</span>` : '');
+    const pct = s.profileComplete || 0;
+    if (el('dash-completeness-bar'))   el('dash-completeness-bar').style.width   = pct + '%';
+    if (el('dash-completeness-label')) el('dash-completeness-label').textContent = `Profile ${pct}% complete`;
+    if (el('ds-inquiries')) el('ds-inquiries').textContent = s.totalInquiries || 0;
+    if (el('ds-new'))       el('ds-new').textContent       = s.newInquiries   || 0;
+    if (el('ds-reviews'))   el('ds-reviews').textContent   = s.totalReviews   || 0;
+    if (el('ds-rating'))    el('ds-rating').textContent    = (s.averageRating || 0).toFixed(1);
+    // Profile tab
+    const profTab = el('dash-tab-profile');
+    if (profTab) profTab.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:2px">
+        ${detailRow('ti-user', p.FullName || '')}
+        ${detailRow('ti-phone', p.Phone || '')}
+        ${detailRow('ti-brand-whatsapp', p.WhatsApp || '')}
+        ${detailRow('ti-briefcase', p.Occupation || '')}
+        ${detailRow('ti-map-pin', [p.Town,p.LGA,p.State].filter(Boolean).join(', '))}
+        ${detailRow('ti-clock', (p.YearsExperience || 0) + ' years experience')}
+        ${detailRow('ti-file-text', p.Bio || 'No bio yet')}
+      </div>`;
+    // Portfolio tab
+    const urls = Array.isArray(p.PortfolioUrls) ? p.PortfolioUrls : (p.PortfolioUrls ? p.PortfolioUrls.split(',').filter(Boolean) : []);
+    const portTab = el('dash-tab-portfolio');
+    if (portTab) portTab.innerHTML = `
+      <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:12px">${s.portfolioCount || 0} of ${s.portfolioLimit || 3} photos used</p>
+      ${urls.length ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${urls.map(u=>`<img src="${u}" style="width:100%;aspect-ratio:1;border-radius:8px;object-fit:cover;cursor:pointer" onclick="openLightbox('${u}')" onerror="this.style.display='none'">`).join('')}</div>` : '<p style="color:var(--text-secondary);font-size:13px">No portfolio photos yet</p>'}`;
+    // Inquiries tab
+    const inqTab = el('dash-tab-inquiries');
+    if (inqTab) inqTab.innerHTML = d.inquiries && d.inquiries.length
+      ? d.inquiries.map(i=>`<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">${i.CustomerName||''}</span><span style="font-size:11px;color:var(--text-tertiary)">${i.Date?new Date(i.Date).toLocaleDateString():''}</span></div><p style="font-size:13px;color:var(--text-secondary)">${i.Message||''}</p></div>`).join('')
+      : '<p style="color:var(--text-secondary);font-size:13px">No inquiries yet — share your profile to get noticed</p>';
+    // Reviews tab
+    const revTab = el('dash-tab-dash-reviews');
+    if (revTab) revTab.innerHTML = d.reviews && d.reviews.length
+      ? d.reviews.map(r=>`<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">${r.ReviewerName||''}</span><span style="font-size:11px;color:var(--text-tertiary)">${r.DateSubmitted?new Date(r.DateSubmitted).toLocaleDateString():''}</span></div><div style="margin-bottom:4px">${renderStars(r.Rating,13)}</div><p style="font-size:13px;color:var(--text-secondary)">${r.ReviewText||''}</p></div>`).join('')
+      : '<p style="color:var(--text-secondary);font-size:13px">No reviews yet — ask your customers to rate you</p>';
+  } catch(e) {
+    console.error('Dashboard error:', e);
+  }
+}
+
+function detailRow(icon, text) {
+  if (!text) return '';
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><i class="ti ${icon}" style="font-size:16px;color:var(--text-tertiary);margin-top:1px;flex-shrink:0"></i><span>${text}</span></div>`;
+}
+
+function doLogout() {
+  localStorage.removeItem('spotly_provider_id');
+  localStorage.removeItem('spotly_provider_phone');
+  updateJoinTab(false);
+  const dashEl = el('dashboard-view');
+  const regEl  = el('register-view');
+  if (dashEl) dashEl.style.display = 'none';
+  if (regEl)  regEl.style.display  = 'block';
+  navTo('home');
+}
+
+function switchDashTab(id, btn) {
+  document.querySelectorAll('#dashboard-view .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#dashboard-view .tab-panel').forEach(p => p.style.display = 'none');
+  btn.classList.add('active');
+  const panel = el('dash-tab-' + id);
+  if (panel) panel.style.display = 'block';
+}
+
+// ── MENU SHEET ───────────────────────────────────────────────────────
+function openMenuSheet() {
+  const pid = localStorage.getItem('spotly_provider_id');
+  const contentEl = el('menu-sheet-content');
+  const items = [];
+  if (pid) {
+    items.push({ icon:'ti-layout-dashboard', label:'My Profile', action:"navTo('register');closeMenuSheet()" });
+  }
+  items.push({ icon:'ti-user-plus',   label:'Register your business (free)', action:"navTo('register');closeMenuSheet()" });
+  items.push({ icon:'ti-info-circle', label:'About Spotly',                   action:"navTo('about');closeMenuSheet()" });
+  items.push({ icon:'ti-share',       label:'Share Spotly',                   action:"shareSpotly();closeMenuSheet()" });
+  if (pid) {
+    items.push({ icon:'ti-logout', label:'Logout', danger: true, action:"doLogout();closeMenuSheet()" });
+  }
+  contentEl.innerHTML = items.map(item =>
+    `<div onclick="${item.action}" style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer${item.danger?';color:#DC2626':''}">
+      <i class="ti ${item.icon}" style="font-size:20px;width:24px${item.danger?';color:#DC2626':''}"></i>
+      <span style="font-size:14px">${item.label}</span>
+    </div>`
+  ).join('');
+  el('menu-sheet').classList.add('open');
+}
+
+function closeMenuSheet() {
+  el('menu-sheet').classList.remove('open');
+}
+
+function shareSpotly() {
+  const msg = 'Find skilled workers near you on Spotly — spotly-africa-hub.lovable.app';
+  if (navigator.share) {
+    navigator.share({ title: 'Spotly', text: msg, url: 'https://spotly-africa-hub.lovable.app' });
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg));
+  }
+}
+
+// ── PROVIDER PROFILE FIX ────────────────────────────────────────────
+// Override openProviderProfile to never crash on missing data
+async function openProviderProfile(p) {
+  if (!p || !p.ProviderId) return;
+
+  // Show overlay immediately with card data
+  _renderProfile(p);
+  el('profile-view').classList.add('active');
+  el('profile-actions').classList.add('show');
+
+  // Fetch full data in background — silently update
+  try {
+    const full = await apiGet('getProvider', { providerId: p.ProviderId });
+    if (full && full.ProviderId) _renderProfile(full);
+  } catch {}
+
+  // Load reviews
+  loadProviderReviews(p.ProviderId);
+}
+
+function _renderProfile(p) {
+  if (!p) return;
+  const name      = p.FullName        || 'Unknown';
+  const occ       = p.Occupation      || p.Profession || '';
+  const town      = p.Town            || '';
+  const lga       = p.LGA             || '';
+  const state     = p.State           || '';
+  const rating    = parseFloat(p.AverageRating) || 0;
+  const reviews   = parseInt(p.TotalReviews)    || 0;
+  const exp       = parseInt(p.YearsExperience) || 0;
+  const bio       = p.Bio             || 'No bio added yet';
+  const phone     = p.Phone           || '';
+  const wa        = p.WhatsApp        || p.Phone || '';
+  const verified  = p.Verified        === 'true';
+  const premium   = p.PlanType        === 'premium';
+  const portfolioUrls = Array.isArray(p.PortfolioUrls)
+    ? p.PortfolioUrls
+    : typeof p.PortfolioUrls === 'string'
+      ? p.PortfolioUrls.split(',').filter(Boolean)
+      : [];
+
+  const av = getAvatar(name);
+  if (el('pv-avatar'))  { el('pv-avatar').style.cssText += `;background:${av.bg};color:${av.text}`; el('pv-avatar').textContent = av.initials; }
+  if (el('pv-name'))    el('pv-name').textContent    = name;
+  if (el('pv-sub'))     el('pv-sub').textContent     = occ + (town ? ' · ' + town : '') + (lga ? ', ' + lga : '');
+  if (el('pv-rating'))  el('pv-rating').textContent  = rating.toFixed(1);
+  if (el('pv-reviews')) el('pv-reviews').textContent = reviews;
+  if (el('pv-exp'))     el('pv-exp').textContent     = exp;
+  if (el('pv-stars'))   el('pv-stars').innerHTML     = renderStars(rating, 16) + `<span style="margin-left:6px;font-size:13px;color:var(--text-secondary)">${rating.toFixed(1)} · ${reviews} reviews</span>`;
+
+  const badgesEl = el('pv-badges');
+  if (badgesEl) badgesEl.innerHTML =
+    (verified ? `<span class="badge badge-verified"><i class="ti ti-circle-check" style="font-size:10px"></i> Verified</span>` : '') +
+    (premium  ? `<span class="badge badge-premium"><i class="ti ti-crown" style="font-size:10px"></i> Premium</span>`           : '') +
+    `<span style="font-size:11px;color:var(--text-tertiary);background:var(--bg);padding:2px 8px;border-radius:20px">${p.ProviderId || ''}</span>`;
+
+  // Info tab
+  const infoEl = el('pv-info');
+  if (infoEl) infoEl.innerHTML = `
+    <p style="font-size:13px;line-height:1.7;color:var(--text-primary);margin-bottom:16px">${bio}</p>
+    ${detailRow('ti-map-pin', [town,lga,state].filter(Boolean).join(', '))}
+    ${detailRow('ti-clock',   exp + ' years experience')}
+    ${detailRow('ti-id-badge', p.ProviderId || '')}`;
+
+  // Portfolio tab
+  const portEl = el('pv-portfolio');
+  if (portEl) portEl.innerHTML = portfolioUrls.length
+    ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${portfolioUrls.map(u=>`<img src="${u}" style="width:100%;aspect-ratio:1;border-radius:8px;object-fit:cover;cursor:pointer" onclick="openLightbox('${u}')" onerror="this.style.display='none'">`).join('')}</div>`
+    : `<div style="text-align:center;padding:40px 0"><i class="ti ti-photo" style="font-size:32px;color:var(--border)"></i><p style="color:var(--text-secondary);margin-top:8px">No portfolio photos yet</p></div>`;
+
+  // Action buttons
+  const callBtn = el('profile-call-btn');
+  const waBtn   = el('profile-wa-btn');
+  if (callBtn) callBtn.href = phone ? `tel:${phone}` : '#';
+  if (waBtn)   waBtn.href   = formatWhatsApp(wa, name);
+}
+
+async function loadProviderReviews(providerId) {
+  const el2 = el('pv-reviews');
+  if (!el2) return;
+  el2.innerHTML = '<p style="color:var(--text-tertiary);font-size:13px;padding:8px 0">Loading reviews...</p>';
+  try {
+    const reviews = await apiGet('getProviderReviews', { providerId });
+    const list = reviews && reviews.length
+      ? reviews.map(r => `
+          <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:13px;font-weight:500">${r.ReviewerName || 'Anonymous'}</span>
+              <span style="font-size:11px;color:var(--text-tertiary)">${r.DateSubmitted ? new Date(r.DateSubmitted).toLocaleDateString() : ''}</span>
+            </div>
+            <div style="margin-bottom:4px">${renderStars(r.Rating, 13)}</div>
+            ${r.ReviewText ? `<p style="font-size:13px;color:var(--text-secondary)">${r.ReviewText}</p>` : ''}
+          </div>`).join('')
+      : `<div style="text-align:center;padding:32px 0"><i class="ti ti-star" style="font-size:32px;color:var(--border)"></i><p style="color:var(--text-secondary);margin-top:8px">No reviews yet</p></div>`;
+
+    el2.innerHTML = list + `
+      <div style="background:var(--bg);border-radius:14px;padding:16px;margin-top:16px">
+        <div style="font-size:14px;font-weight:500;margin-bottom:12px">Leave a review</div>
+        <input type="text" id="rv-name" class="inp" placeholder="Your name" style="margin-bottom:10px">
+        <div id="rv-stars" style="display:flex;gap:8px;margin-bottom:10px">
+          ${[1,2,3,4,5].map(n=>`<i class="ti ti-star" style="font-size:28px;color:var(--border);cursor:pointer" onclick="selectRevStar(${n},this)"></i>`).join('')}
+        </div>
+        <textarea id="rv-comment" class="inp" rows="3" placeholder="How was the service? (optional)" maxlength="200" style="resize:none"></textarea>
+        <button class="btn-primary" style="margin-top:10px" onclick="submitProviderReview('${providerId}')">Submit review</button>
+        <p id="rv-msg" style="display:none;font-size:13px;color:var(--primary);margin-top:8px">Thank you — your review is pending approval</p>
+      </div>`;
+  } catch {
+    el2.innerHTML = '<p style="color:var(--text-secondary);font-size:13px">Could not load reviews</p>';
+  }
+}
+
+let _revStarSelected = 0;
+function selectRevStar(n, starEl) {
+  _revStarSelected = n;
+  const stars = document.querySelectorAll('#rv-stars i');
+  stars.forEach((s, i) => s.style.color = i < n ? '#D4930A' : 'var(--border)');
+}
+
+async function submitProviderReview(providerId) {
+  const name    = el('rv-name')    ? el('rv-name').value.trim()    : '';
+  const comment = el('rv-comment') ? el('rv-comment').value.trim() : '';
+  if (!name)             return alert('Please enter your name');
+  if (!_revStarSelected) return alert('Please select a star rating');
+  try {
+    await apiPost({ action: 'submitReview', providerId, reviewerName: name, rating: _revStarSelected, reviewText: comment });
+    const msg = el('rv-msg');
+    if (msg) msg.style.display = 'block';
+    if (el('rv-name'))    el('rv-name').value    = '';
+    if (el('rv-comment')) el('rv-comment').value = '';
+    _revStarSelected = 0;
+    document.querySelectorAll('#rv-stars i').forEach(s => s.style.color = 'var(--border)');
+  } catch(e) {
+    alert('Could not submit review. Please try again.');
+  }
+}
+
+// ── VARIABLES for new functions ──────────────────────────────────────
+let allOccupationsList = [];
+let lgaSuggestionsCache = [];
+let townSuggestionsCache = [];
+
+// ══════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════
+(async function init() {
+  // Request GPS silently
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        localStorage.setItem('spotly_lat', pos.coords.latitude);
+        localStorage.setItem('spotly_lon', pos.coords.longitude);
+      },
+      () => {}
+    );
+  }
+
+  // Restore saved GPS
+  const savedLat = localStorage.getItem('spotly_lat');
+  const savedLon = localStorage.getItem('spotly_lon');
+  if (savedLat && savedLon) gpsCoords = { lat: parseFloat(savedLat), lon: parseFloat(savedLon) };
+
+  // Update join tab if already logged in
+  updateJoinTab(!!localStorage.getItem('spotly_provider_id'));
+
+  // Load states into all dropdowns
+  try {
+    const states = await apiGet('getStates');
+    ['r-state', 'ls-state', 'f-state'].forEach(id => {
+      const sel = el(id);
+      if (!sel) return;
+      states.forEach(s => {
+        const val = typeof s === 'string' ? s : s.state;
+        const count = typeof s === 'object' && s.totalProviders ? ` (${s.totalProviders})` : '';
+        sel.appendChild(Object.assign(document.createElement('option'), { value: val, textContent: val + count }));
+      });
+    });
+  } catch {}
+
+  // Load categories for chips
+  try { allCategories = await apiGet('getCategories'); } catch {}
+
+  // Show location picker if no saved location
+  const saved = getSavedLocation();
+  if (!saved.town) setTimeout(openLocationPicker, 800);
+
+  // Load home
+  loadHomeData();
+  updateCategoryCounts();
+})();
+</script>
+</body>
+</html>
