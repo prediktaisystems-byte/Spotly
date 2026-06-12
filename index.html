@@ -293,13 +293,13 @@
         <div>
           <div class="section-header"><h2>Browse by category</h2></div>
           <div class="cat-grid" id="cat-grid">
-            <button class="cat-tile" onclick="filterByCategory('Builder')"><i class="ti ti-building"></i><span>Builder</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Mechanic')"><i class="ti ti-car"></i><span>Mechanic</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Tailor')"><i class="ti ti-scissors"></i><span>Tailor</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Electrician')"><i class="ti ti-bolt"></i><span>Electrician</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Photographer')"><i class="ti ti-camera"></i><span>Photographer</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Caterer')"><i class="ti ti-tools-kitchen"></i><span>Caterer</span></button>
-            <button class="cat-tile" onclick="filterByCategory('Plumber')"><i class="ti ti-droplet"></i><span>Plumber</span></button>
+            <button class="cat-tile" data-occupation="Builder" onclick="filterByCategory('Builder')"><i class="ti ti-building"></i><span>Builder</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Mechanic" onclick="filterByCategory('Mechanic')"><i class="ti ti-car"></i><span>Mechanic</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Tailor" onclick="filterByCategory('Tailor')"><i class="ti ti-scissors"></i><span>Tailor</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Electrician" onclick="filterByCategory('Electrician')"><i class="ti ti-bolt"></i><span>Electrician</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Photographer" onclick="filterByCategory('Photographer')"><i class="ti ti-camera"></i><span>Photographer</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Caterer" onclick="filterByCategory('Caterer')"><i class="ti ti-tools-kitchen"></i><span>Caterer</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
+            <button class="cat-tile" data-occupation="Plumber" onclick="filterByCategory('Plumber')"><i class="ti ti-droplet"></i><span>Plumber</span><span class="provider-count" style="font-size:10px;color:var(--text-tertiary)"></span></button>
             <button class="cat-tile" onclick="navTo('categories')"><i class="ti ti-grid-dots"></i><span>More</span></button>
           </div>
         </div>
@@ -715,7 +715,7 @@
 // ══════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbygZRxGXeuJjSeRM9cK3UcnXz-l8MKKi9QtI_-YBK-rrhA1tlszVjdBk8q_KIhx9iqB/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzaeJOWY6THIy2z9xDUuHDBwxSlVOtDOABaxM4GWcHHW3_65vpm0MPrI4y4EGOyJYqN/exec';
 
 // ══════════════════════════════════════════════════════════════════
 //  API WRAPPERS
@@ -1513,6 +1513,7 @@ async function submitRegistration() {
     // Refresh home data so new provider appears
     try { loadHomeData(); } catch {}
     try { allCategories = await apiGet('getCategories'); } catch {}
+    try { updateCategoryCounts(); } catch {}
 
     console.log('[Spotly] ✓ Registration success. ProviderId:', pid, '| Occupation:', occupation);
 
@@ -1542,6 +1543,36 @@ async function loadAboutStats() {
     el('a-stat-3').textContent = Object.keys(stats.providersByCategory || {}).length;
     el('a-stat-4').textContent = stats.totalReviews || 0;
   } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CATEGORY COUNTS — live provider count per occupation
+// ══════════════════════════════════════════════════════════════════
+async function updateCategoryCounts() {
+  try {
+    var stats = await apiGet('getCategoryStats');
+    if (!Array.isArray(stats)) return;
+
+    // Build a lookup: occupation name (lowercase) → totalProviders
+    var lookup = {};
+    stats.forEach(function(item) {
+      if (item.occupation) {
+        lookup[item.occupation.trim().toLowerCase()] = item.totalProviders || 0;
+      }
+    });
+
+    // Update every cat-tile that has a data-occupation attribute
+    document.querySelectorAll('.cat-tile[data-occupation]').forEach(function(tile) {
+      var occ = (tile.getAttribute('data-occupation') || '').trim().toLowerCase();
+      var count = lookup[occ];
+      if (count === undefined) return;
+      var countEl = tile.querySelector('.provider-count, .category-count');
+      if (countEl) countEl.textContent = count + ' provider' + (count !== 1 ? 's' : '');
+    });
+  } catch (e) {
+    // Silent — never block the page over a count update
+    console.warn('[Spotly] updateCategoryCounts failed:', e.message);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2433,6 +2464,7 @@ let townSuggestionsCache = [];
 
   // Load home
   loadHomeData();
+  updateCategoryCounts();
 })();
 </script>
 </body>
