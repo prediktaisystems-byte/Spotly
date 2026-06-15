@@ -4058,6 +4058,9 @@ async function doLogin() {
 
     const { providerId, provider } = json.data;
 
+    // Use the phone exactly as stored in the sheet — avoids dashboard verification mismatch
+const storedPhone = provider?.Phone || phone;
+    
     // Persist session
     localStorage.setItem('spotly_provider_id',    providerId);
     localStorage.setItem('spotly_provider_phone', storedPhone);
