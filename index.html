@@ -1727,10 +1727,12 @@ async function apiGet(action, params = {}) {
 async function apiPost(body) {
   const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  const d = await res.json();
+  const text = await res.text();
+  let d;
+  try { d = JSON.parse(text); }
+  catch(e) { throw new Error('Server returned invalid JSON: ' + text.slice(0, 120)); }
   if (d.status !== 'success') throw new Error(d.message || 'Request failed');
   return d.data;
 }
