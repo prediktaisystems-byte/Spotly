@@ -1455,10 +1455,14 @@
       <!-- AUTH SCREENS (shown when not logged in) -->
       <div id="agt-auth-wrap">
         <div class="agt-header">
-          <div class="agt-header-title"><i class="ti ti-users" style="font-size:20px;vertical-align:middle;margin-right:6px"></i>Agent Portal</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div class="agt-header-title"><i class="ti ti-users" style="font-size:20px;vertical-align:middle;margin-right:6px"></i>Agent Portal</div>
+            <button onclick="navTo('home')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px">
+              <i class="ti ti-home" style="font-size:14px"></i>Home
+            </button>
+          </div>
           <div class="agt-header-sub">Register &amp; track provider sign-ups</div>
         </div>
-
         <div style="padding:20px 0 40px">
           <div class="agt-auth-card">
             <!-- Tabs -->
@@ -1584,9 +1588,14 @@
               <div class="agt-dash-name" id="agt-dash-name">Agent</div>
               <div class="agt-dash-id"   id="agt-dash-id">AGT-0000</div>
             </div>
-            <button onclick="agtLogout()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px">
-              <i class="ti ti-logout" style="font-size:14px"></i>Logout
-            </button>
+            <div style="display:flex;gap:8px">
+              <button onclick="navTo('home')" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px">
+                <i class="ti ti-home" style="font-size:14px"></i>Home
+              </button>
+              <button onclick="agtLogout()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px">
+                <i class="ti ti-logout" style="font-size:14px"></i>Logout
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1641,7 +1650,7 @@
           <div style="margin-bottom:16px">
             <div class="agt-section-title">Quick Actions</div>
             <div style="display:flex;gap:10px">
-              <button onclick="navTo('register')" class="btn-outline" style="flex:1;font-size:13px">
+              <button onclick="agtPrefillProviderReg();showView('register');initRegister()" class="btn-outline" style="flex:1;font-size:13px">
                 <i class="ti ti-user-plus" style="font-size:15px"></i>Register Provider
               </button>
               <button onclick="agtSwitchTab('providers')" class="btn-outline" style="flex:1;font-size:13px">
