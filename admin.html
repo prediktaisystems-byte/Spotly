@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotly Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --primary:      #0F6E56;
+      --mid-green:    #1D9E75;
+      --light-green:  #E8F5F0;
+      --page-bg:      #F7F6F3;
+      --surface:      #FFFFFF;
+      --border:       #EBEBEB;
+      --text-primary: #111111;
+      --text-secondary:#6B6B6B;
+      --text-tertiary: #9E9E9E;
+      --amber:        #D4930A;
+      --red:          #DC2626;
+      --sidebar-w:    220px;
+    }
+
+    /* ── Auth screen ─────────────────────────────────────── */
+    #auth-screen {
+      min-height: 100vh; background: var(--page-bg);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 380px;
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+    }
+    .auth-logo-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--primary); display: flex; align-items: center; justify-content: center;
+    }
+    .auth-logo-icon i { font-size: 20px; color: #fff; }
+    .auth-logo-text { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+    .auth-logo-sub  { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+    .auth-title { font-size: 20px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
+    .auth-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .field input {
+      width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 0 12px; font-size: 14px; color: var(--text-primary); outline: none;
+      transition: border-color 150ms;
+    }
+    .field input:focus { border-color: var(--primary); }
+    .btn-login {
+      width: 100%; height: 48px; background: var(--primary); color: #fff;
+      font-size: 15px; font-weight: 500; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 150ms; margin-top: 4px;
+    }
+    .btn-login:hover { opacity: 0.88; }
+    .btn-login:disabled { opacity: 0.45; cursor: not-allowed; }
+    .auth-error {
+      background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px;
+      padding: 10px 12px; font-size: 13px; color: var(--red); margin-bottom: 16px; display: none;
+    }
+
+    /* ── App shell ───────────────────────────────────────── */
+    #app-shell {
+      min-height: 100vh; background: var(--page-bg);
+      display: none; /* shown after login */
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed; top: 0; left: 0; width: var(--sidebar-w);
+      height: 100vh; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 100;
+    }
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 16px 14px; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand-icon {
+      width: 32px; height: 32px; background: var(--primary); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sidebar-brand-icon i { font-size: 16px; color: #fff; }
+    .sidebar-brand-text { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .sidebar-brand-sub  { font-size: 11px; color: var(--text-tertiary); }
+    .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; margin-bottom: 2px;
+      transition: background 150ms, color 150ms;
+    }
+    .nav-item i { font-size: 17px; }
+    .nav-item:hover { background: var(--page-bg); color: var(--text-primary); }
+    .nav-item.active { background: var(--light-green); color: var(--primary); }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; color: var(--text-tertiary);
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: 14px 10px 4px;
+    }
+    .sidebar-footer {
+      border-top: 1px solid var(--border); padding: 12px 8px;
+    }
+    .admin-chip {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-radius: 8px; background: var(--page-bg);
+    }
+    .admin-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      font-size: 11px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .admin-info { flex: 1; min-width: 0; }
+    .admin-name { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-role { font-size: 10px; color: var(--text-tertiary); }
+    .btn-logout {
+      padding: 6px; border-radius: 6px; color: var(--text-tertiary);
+      transition: background 150ms, color 150ms;
+    }
+    .btn-logout:hover { background: #FEF2F2; color: var(--red); }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-w); padding: 28px 28px 40px;
+      min-height: 100vh;
+    }
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+    .btn-refresh {
+      height: 36px; padding: 0 14px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; color: var(--text-secondary);
+      background: var(--surface); display: flex; align-items: center; gap: 6px;
+      transition: border-color 150ms;
+    }
+    .btn-refresh:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Stat cards ──────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .stat-card-top {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .stat-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .stat-icon.green  { background: var(--light-green);  color: var(--primary); }
+    .stat-icon.amber  { background: #FEF3DC;              color: var(--amber); }
+    .stat-icon.blue   { background: #EBF3FD;              color: #185FA5; }
+    .stat-icon.red    { background: #FEF2F2;              color: var(--red); }
+    .stat-icon.purple { background: #F0EFFE;              color: #5B4FCF; }
+    .stat-icon.slate  { background: #F1F5F9;              color: #475569; }
+    .stat-badge {
+      font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px;
+      background: var(--light-green); color: var(--primary);
+    }
+    .stat-badge.warning { background: #FEF3DC; color: var(--amber); }
+    .stat-badge.alert   { background: #FEF2F2; color: var(--red); }
+    .stat-value { font-size: 28px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); }
+    .stat-value.loading { color: var(--border); }
+
+    /* ── Skeleton shimmer ────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+    }
+    .shimmer-val { height: 32px; width: 60px; }
+    .shimmer-lbl { height: 14px; width: 100px; margin-top: 4px; }
+
+    /* ── Content area views ──────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Coming soon ─────────────────────────────────────── */
+    .coming-soon {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 48px; text-align: center;
+      color: var(--text-tertiary);
+    }
+    .coming-soon i { font-size: 40px; display: block; margin-bottom: 12px; color: var(--border); }
+    .coming-soon p { font-size: 14px; }
+
+    /* ── Spin animation ──────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: spin .8s linear infinite; }
+
+    /* ── Responsive: hide sidebar on small screens ───────── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 200ms; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; padding: 16px 16px 40px; }
+      .mobile-topbar {
+        display: flex; align-items: center; gap: 12px;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        padding: 12px 16px; position: sticky; top: 0; z-index: 90;
+      }
+      .mobile-menu-btn { font-size: 20px; color: var(--text-primary); }
+    }
+    @media (min-width: 769px) {
+      .mobile-topbar { display: none; }
+    }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 99;
+    }
+    .sidebar-overlay.open { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ──────────────────────────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="ti ti-map-pin"></i></div>
+      <div>
+        <div class="auth-logo-text">Spotly</div>
+        <div class="auth-logo-sub">Admin Dashboard</div>
+      </div>
+    </div>
+    <div class="auth-title">Sign in</div>
+    <div class="auth-sub">Only authorised admins can access this panel.</div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') loginAdmin()" />
+    </div>
+    <button class="btn-login" id="login-btn" onclick="loginAdmin()">
+      <i class="ti ti-login"></i> Sign in
+    </button>
+  </div>
+</div>
+
+<!-- ── APP SHELL ─────────────────────────────────────────────────── -->
+<div id="app-shell">
+
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <button class="mobile-menu-btn" onclick="openSidebar()"><i class="ti ti-menu-2"></i></button>
+    <span style="font-size:15px;font-weight:600;color:var(--text-primary)">Spotly Admin</span>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon"><i class="ti ti-map-pin"></i></div>
+      <div>
+        <div class="sidebar-brand-text">Spotly</div>
+        <div class="sidebar-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" data-view="overview" onclick="switchView('overview')">
+        <i class="ti ti-layout-dashboard"></i> Overview
+      </div>
+
+      <div class="nav-section-label">Coming Soon</div>
+      <div class="nav-item" data-view="providers" onclick="switchView('providers')">
+        <i class="ti ti-users"></i> Providers
+      </div>
+      <div class="nav-item" data-view="reviews" onclick="switchView('reviews')">
+        <i class="ti ti-star"></i> Reviews
+      </div>
+      <div class="nav-item" data-view="verifications" onclick="switchView('verifications')">
+        <i class="ti ti-shield-check"></i> Verifications
+      </div>
+      <div class="nav-item" data-view="payments" onclick="switchView('payments')">
+        <i class="ti ti-credit-card"></i> Payments
+      </div>
+      <div class="nav-item" data-view="agents" onclick="switchView('agents')">
+        <i class="ti ti-id-badge"></i> Agents
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-chip">
+        <div class="admin-avatar" id="admin-avatar">A</div>
+        <div class="admin-info">
+          <div class="admin-name" id="admin-username">Admin</div>
+          <div class="admin-role" id="admin-role">admin</div>
+        </div>
+        <button class="btn-logout" title="Logout" onclick="logoutAdmin()">
+          <i class="ti ti-logout" style="font-size:16px"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- OVERVIEW VIEW -->
+    <div class="view active" id="view-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard Overview</div>
+          <div class="page-subtitle" id="dash-subtitle">Loading platform statistics…</div>
+        </div>
+        <button class="btn-refresh" onclick="loadDashboard(true)">
+          <i class="ti ti-refresh" id="refresh-icon"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Stat cards grid -->
+      <div class="stats-grid" id="stats-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER VIEWS (Phase 2+) -->
+    <div class="view" id="view-providers">
+      <div class="page-header"><div><div class="page-title">Provider Management</div></div></div>
+      <div class="coming-soon"><i class="ti ti-users"></i><p>Provider management — coming in Phase 2</p></div>
+    </div>
+    <div class="view" id="view-reviews">
+      <div class="page-header"><div><div class="page-title">Reviews</div></div></div>
+      <div class="coming-soon"><i class="ti ti-star"></i><p>Review moderation — coming in Phase 2</p></div>
+    </div>
+    <div class="view" id="view-verifications">
+      <div class="page-header"><div><div class="page-title">Verifications</div></div></div>
+      <div class="coming-soon"><i class="ti ti-shield-check"></i><p>Verification management — coming in Phase 2</p></div>
+    </div>
+    <div class="view" id="view-payments">
+      <div class="page-header"><div><div class="page-title">Payments</div></div></div>
+      <div class="coming-soon"><i class="ti ti-credit-card"></i><p>Payment management — coming in Phase 2</p></div>
+    </div>
+    <div class="view" id="view-agents">
+      <div class="page-header"><div><div class="page-title">Agents</div></div></div>
+      <div class="coming-soon"><i class="ti ti-id-badge"></i><p>Agent management — coming in Phase 2</p></div>
+    </div>
+
+  </main>
+</div><!-- /app-shell -->
+
+<script>
+'use strict';
+
+// ── CONFIG ────────────────────────────────────────────────────────
+const API_URL    = 'https://script.google.com/macros/s/AKfycbzaqVapSIkxs5IhR42KhqLWF7_mhAWl_-qzMJHSRfSLjmhtfTbc8cn94b0rb2Hsaoy9/exec';
+const ADMIN_TOKEN_KEY   = 'spotly_admin_token';
+const ADMIN_SESSION_KEY = 'spotly_admin_session';
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+
+async function apiGet(action, params) {
+  const clean = { action };
+  for (const [k, v] of Object.entries(params || {})) {
+    if (v !== undefined && v !== null && v !== '') clean[k] = String(v);
+  }
+  const res = await fetch(`${API_URL}?${new URLSearchParams(clean)}`);
+  const d   = await res.json();
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+
+async function apiPost(body) {
+  const res  = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  const text = await res.text();
+  let d;
+  try { d = JSON.parse(text); }
+  catch(e) { throw new Error('Server returned invalid JSON: ' + text.slice(0, 120)); }
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+
+// ── SESSION MANAGEMENT ────────────────────────────────────────────
+function getAdminSession() {
+  try { return JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY)); } catch { return null; }
+}
+
+function saveAdminSession(data) {
+  localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(data));
+  localStorage.setItem(ADMIN_TOKEN_KEY,   data.token);
+}
+
+function clearAdminSession() {
+  localStorage.removeItem(ADMIN_SESSION_KEY);
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
+function getToken() { return localStorage.getItem(ADMIN_TOKEN_KEY) || ''; }
+
+// ── AUTH ──────────────────────────────────────────────────────────
+async function loginAdmin() {
+  const username = (el('login-username').value || '').trim();
+  const password = (el('login-password').value || '').trim();
+  const errEl    = el('auth-error');
+  const btn      = el('login-btn');
+
+  errEl.style.display = 'none';
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 spin"></i> Signing in…';
+
+  try {
+    const data = await apiPost({ action: 'loginAdmin', username, password });
+    saveAdminSession(data);
+    bootApp(data);
+  } catch(e) {
+    errEl.textContent = e.message || 'Login failed. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-login"></i> Sign in';
+  }
+}
+
+async function logoutAdmin() {
+  try { await apiPost({ action: 'logoutAdmin', adminToken: getToken() }); } catch {}
+  clearAdminSession();
+  el('app-shell').style.display = 'none';
+  el('auth-screen').style.display = 'flex';
+  el('login-username').value = '';
+  el('login-password').value = '';
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+function bootApp(session) {
+  el('auth-screen').style.display  = 'none';
+  el('app-shell').style.display    = 'block';
+
+  // Populate admin chip
+  const username = session.username || 'Admin';
+  const role     = session.role     || 'admin';
+  el('admin-avatar').textContent  = username.charAt(0).toUpperCase();
+  el('admin-username').textContent = username;
+  el('admin-role').textContent     = role;
+
+  loadDashboard();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+(async function init() {
+  // Check existing session
+  const saved = getAdminSession();
+  if (saved && saved.token) {
+    try {
+      await apiGet('getAdminSession', { adminToken: saved.token });
+      bootApp(saved);
+      return;
+    } catch {
+      clearAdminSession();
+    }
+  }
+  // Show login
+  el('auth-screen').style.display = 'flex';
+  el('app-shell').style.display   = 'none';
+})();
+
+// ── DASHBOARD LOAD ────────────────────────────────────────────────
+async function loadDashboard(force) {
+  const icon = el('refresh-icon');
+  if (icon) icon.classList.add('spin');
+  el('dash-subtitle').textContent = 'Loading statistics…';
+
+  renderStatSkeletons();
+
+  try {
+    const stats = await apiGet('getAdminDashboard', { adminToken: getToken() });
+    renderStats(stats);
+    const now = new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
+    el('dash-subtitle').textContent = `Last updated: ${now}`;
+  } catch(e) {
+    el('dash-subtitle').textContent = 'Failed to load — ' + (e.message || 'unknown error');
+    el('stats-grid').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-tertiary);font-size:13px">
+        <i class="ti ti-alert-circle" style="font-size:32px;display:block;margin-bottom:8px;color:#DC2626"></i>
+        Could not load stats — ${e.message || 'Request failed'}
+        <br><br>
+        <button onclick="loadDashboard()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer">
+          <i class="ti ti-refresh"></i> Retry
+        </button>
+      </div>`;
+  } finally {
+    if (icon) icon.classList.remove('spin');
+  }
+}
+
+// ── STAT CARD DEFINITIONS ─────────────────────────────────────────
+function getCardDefs(s) {
+  const fmt  = n => (n === undefined || n === null) ? '—' : Number(n).toLocaleString();
+  const money = n => (n === undefined || n === null) ? '—' : '₦' + Number(n).toLocaleString('en-NG', { minimumFractionDigits: 0 });
+
+  return [
+    { label: 'Total Providers',       value: fmt(s.totalProviders),           icon: 'ti-users',          color: 'green'  },
+    { label: 'Verified Providers',    value: fmt(s.verifiedProviders),         icon: 'ti-circle-check',   color: 'green'  },
+    { label: 'VIP Providers',         value: fmt(s.vipProviders),              icon: 'ti-crown',          color: 'amber'  },
+    { label: 'VIP + Verified',        value: fmt(s.vipAndVerifiedProviders),   icon: 'ti-award',          color: 'amber'  },
+    { label: 'Active Providers',      value: fmt(s.activeProviders),           icon: 'ti-user-check',     color: 'green',  badge: { text: 'Active',   cls: '' }  },
+    { label: 'Inactive Providers',    value: fmt(s.inactiveProviders),         icon: 'ti-user-off',       color: 'slate',  badge: s.inactiveProviders > 0 ? { text: 'Check', cls: 'warning' } : null },
+    { label: 'Total Agents',          value: fmt(s.totalAgents),               icon: 'ti-id-badge',       color: 'blue'   },
+    { label: 'Total Reviews',         value: fmt(s.totalReviews),              icon: 'ti-star',           color: 'amber'  },
+    { label: 'Pending Reviews',       value: fmt(s.pendingReviews),            icon: 'ti-clock',          color: 'red',    badge: s.pendingReviews > 0 ? { text: 'Action needed', cls: 'alert' } : null },
+    { label: 'Pending Verifications', value: fmt(s.pendingVerifications),      icon: 'ti-shield',         color: 'red',    badge: s.pendingVerifications > 0 ? { text: 'Action needed', cls: 'alert' } : null },
+    { label: 'Total Revenue',         value: money(s.totalRevenue),            icon: 'ti-cash',           color: 'green'  },
+    { label: 'Monthly Revenue',       value: money(s.monthlyRevenue),          icon: 'ti-trending-up',    color: 'green'  },
+    { label: 'Total Inquiries',       value: fmt(s.totalInquiries),            icon: 'ti-message',        color: 'blue'   },
+    { label: 'New Providers Today',   value: fmt(s.newProvidersToday),         icon: 'ti-user-plus',      color: 'purple', badge: s.newProvidersToday > 0 ? { text: 'New', cls: '' } : null },
+  ];
+}
+
+function renderStats(stats) {
+  const cards = getCardDefs(stats);
+  el('stats-grid').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="stat-card-top">
+        <div class="stat-icon ${c.color}"><i class="ti ${c.icon}"></i></div>
+        ${c.badge ? `<span class="stat-badge ${c.badge.cls}">${c.badge.text}</span>` : ''}
+      </div>
+      <div>
+        <div class="stat-value">${c.value}</div>
+        <div class="stat-label">${c.label}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderStatSkeletons() {
+  const placeholders = 14;
+  el('stats-grid').innerHTML = Array.from({ length: placeholders }, () => `
+    <div class="stat-card">
+      <div class="stat-card-top">
+        <div class="stat-icon slate shimmer" style="width:36px;height:36px"></div>
+      </div>
+      <div>
+        <div class="shimmer shimmer-val"></div>
+        <div class="shimmer shimmer-lbl" style="margin-top:8px"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── VIEW SWITCHING ────────────────────────────────────────────────
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = el('view-' + name);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === name);
+  });
+
+  closeSidebar();
+}
+
+// ── MOBILE SIDEBAR ────────────────────────────────────────────────
+function openSidebar() {
+  el('sidebar').classList.add('open');
+  el('sidebar-overlay').classList.add('open');
+}
+function closeSidebar() {
+  el('sidebar').classList.remove('open');
+  el('sidebar-overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
