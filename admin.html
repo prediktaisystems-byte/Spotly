@@ -2771,21 +2771,24 @@ async function loadSupportMessages(force = false) {
   try {
     const token = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
     const d = await apiGet('getSupportMessages', { token, filter });
-    if (d.status !== 'success') throw new Error(d.message || 'Failed');
+    if (!d || d.status !== 'success') throw new Error(d && d.message ? d.message : 'Failed to load');
 
     _supMessages = d.messages || [];
 
     // Update nav badge with open count
     const badge = el('sup-nav-badge');
+    const openCount = (d.counts && d.counts.open) || 0;
     if (badge) {
-      const openCount = d.counts && d.counts.open || 0;
       badge.textContent = openCount;
       badge.style.display = openCount > 0 ? 'inline' : 'none';
     }
 
+    const counts   = d.counts   || { open: 0, resolved: 0, spam: 0 };
+    const total    = d.total    != null ? d.total : _supMessages.length;
+
     el('sup-subtitle').textContent =
-      `${d.total} message${d.total !== 1 ? 's' : ''} · `
-      + `Open: ${d.counts.open} · Resolved: ${d.counts.resolved} · Spam: ${d.counts.spam}`;
+      `${total} message${total !== 1 ? 's' : ''} · `
+      + `Open: ${counts.open} · Resolved: ${counts.resolved} · Spam: ${counts.spam}`;
 
     renderSupportTable(_supMessages);
     _supLoaded = true;
@@ -2793,12 +2796,12 @@ async function loadSupportMessages(force = false) {
   } catch (e) {
     el('sup-tbody').innerHTML = `<tr><td colspan="6" class="table-empty" style="color:var(--red)">${e.message}</td></tr>`;
     el('sup-subtitle').textContent = 'Failed to load';
+    _supLoaded = false;
   } finally {
     if (icon) icon.classList.remove('spin');
-    _supLoaded = false;
   }
 }
-
+  
 function filterSupportMessages() {
   const q = (el('sup-search').value || '').toLowerCase();
   const filtered = q
