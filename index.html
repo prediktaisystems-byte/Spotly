@@ -3000,7 +3000,7 @@
 // ══════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbwqpD7w-Mh-meNvIwg-9Xdf7HiZvLvJAbRP0DpGSCdv8uGMzJksrXLcNg5ABZD_g820/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxjbjupYQqQldTkQNv0KQLOFroI_HwLF9_7ysjX9IeOrrJ5B2Tsa5Ihhq_Jzes5oZ3s/exec';
 
 // ══════════════════════════════════════════════════════════════════
 //  API WRAPPERS
@@ -4156,14 +4156,13 @@ function _initSearchMap() {
     attributionControl: false
   });
 
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: 'Tiles &copy; Esri'
-  }).addTo(_searchMap);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, opacity: 0.35
-  }).addTo(_searchMap);
+ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19, maxNativeZoom: 17,
+  ...
+}).addTo(_searchMap);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, maxNativeZoom: 18, opacity: 0.35
+}).addTo(_searchMap);
 
   if (gpsCoords) {
     const pulseIcon = L.divIcon({
