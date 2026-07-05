@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Spotly — You're offline</title>
+  <meta name="theme-color" content="#0F3D38" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: #0F3D38;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+    }
+    .offline-card {
+      max-width: 360px;
+      text-align: center;
+    }
+    .offline-icon {
+      width: 72px; height: 72px;
+      margin: 0 auto 24px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .offline-icon svg { width: 34px; height: 34px; }
+    .offline-logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 18px; }
+    .offline-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; display: inline-block; margin-bottom: 8px; }
+    h1 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    p { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; margin-bottom: 28px; }
+    .retry-btn {
+      height: 48px; padding: 0 28px;
+      background: #4ADE80; color: #0F3D38;
+      font-size: 14px; font-weight: 600;
+      border: none; border-radius: 10px;
+      cursor: pointer; transition: opacity 150ms ease;
+    }
+    .retry-btn:active { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="offline-card">
+    <div class="offline-logo">Spotly<span class="offline-logo-dot"></span></div>
+    <div class="offline-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6">
+        <path d="M12 18h.01M8.5 14.5a5 5 0 0 1 7 0M5.5 11a9.5 9.5 0 0 1 13 0M2.5 7.5a14 14 0 0 1 19 0" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+        <path d="M1 1l22 22" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>You're offline</h1>
+    <p>Previously viewed content is still available.<br>Reconnect to continue discovering businesses.</p>
+    <button class="retry-btn" onclick="location.reload()">Retry</button>
+  </div>
+</body>
+</html>
