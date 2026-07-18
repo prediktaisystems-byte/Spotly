@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Trust & Verification — Spotly</title>
+  <meta name="description" content="Learn how Spotly verifies providers and builds trust on the platform." />
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0F766E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spotly" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div id="app">
+  <div id="view-container">
+    <div id="trust-view" class="view active">
+      <div class="info-hero">
+        <button class="info-back-btn" onclick="location.href='index.html'"><i class="ti ti-arrow-left"></i></button>
+        <h1 class="info-hero-title">Trust &amp; Verification</h1>
+        <p class="info-hero-sub">Building trust between customers and service providers.</p>
+      </div>
+      <div class="info-body">
+        <div class="info-section-label">Verification Badges</div>
+        <div class="info-badge-list">
+          <div class="info-badge-card">
+            <div class="info-badge-icon" style="background:#E8F5E9"><i class="ti ti-circle-check" style="color:#2E7D32"></i></div>
+            <div><div class="info-badge-title">Verified Provider</div><div class="info-badge-desc">Provider has completed identity verification.</div></div>
+          </div>
+          <div class="info-badge-card">
+            <div class="info-badge-icon" style="background:#FFF8E1"><i class="ti ti-star-filled" style="color:#F9A825"></i></div>
+            <div><div class="info-badge-title">Premium Provider</div><div class="info-badge-desc">Provider has upgraded and unlocked premium features.</div></div>
+          </div>
+          <div class="info-badge-card">
+            <div class="info-badge-icon" style="background:#FFF3E0"><i class="ti ti-trophy" style="color:#E65100"></i></div>
+            <div><div class="info-badge-title">Top Rated</div><div class="info-badge-desc">Provider has consistently received excellent reviews.</div></div>
+          </div>
+          <div class="info-badge-card">
+            <div class="info-badge-icon" style="background:#E3F2FD"><i class="ti ti-id" style="color:#1565C0"></i></div>
+            <div><div class="info-badge-title">Verified ID</div><div class="info-badge-desc">Provider has submitted valid identification documents.</div></div>
+          </div>
+        </div>
+
+        <div class="info-section-label" style="margin-top:20px">Why Verification Matters</div>
+        <div class="info-card">
+          <div class="info-bullet"><i class="ti ti-check" style="color:var(--primary)"></i><span>Helps users identify trustworthy providers.</span></div>
+          <div class="info-bullet"><i class="ti ti-check" style="color:var(--primary)"></i><span>Reduces fraud and fake accounts.</span></div>
+          <div class="info-bullet"><i class="ti ti-check" style="color:var(--primary)"></i><span>Builds confidence before contacting a provider.</span></div>
+          <div class="info-bullet"><i class="ti ti-check" style="color:var(--primary)"></i><span>Encourages accountability and professionalism.</span></div>
+        </div>
+
+        <div class="info-disclaimer">
+          <i class="ti ti-alert-circle" style="font-size:16px;color:#D97706;flex-shrink:0;margin-top:2px"></i>
+          <span>Spotly verifies identities where possible but users should still exercise caution and perform their own checks before making payments or agreements.</span>
+        </div>
+      </div>
+      <div id="trust-footer">
+      <div class="spotly-footer">
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="ti ti-map-pin"></i></div>
+          <span class="footer-brand-name">Spotly</span>
+        </div>
+        <div class="footer-tagline">Find trusted workers and businesses near you.</div>
+        <div class="footer-cards-grid">
+          <div class="footer-card" onclick="location.href='trust.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield-check"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Trust &amp; Verification</div>
+              <div class="footer-card-desc">Learn how Spotly verifies providers and builds trust</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='how.html'">
+            <div class="footer-card-icon"><i class="ti ti-settings"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">How Spotly Works</div>
+              <div class="footer-card-desc">Learn how Spotly connects people with services</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='faq.html'">
+            <div class="footer-card-icon"><i class="ti ti-help-circle"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">FAQ</div>
+              <div class="footer-card-desc">Answers to common questions</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='safety.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Safety Tips</div>
+              <div class="footer-card-desc">Stay safe while hiring workers</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+        </div>
+        <div class="footer-links">
+          <button class="footer-link" onclick="location.href='about.html'">About Us</button>
+          <button class="footer-link" onclick="location.href='privacy.html'">Privacy Policy</button>
+          <button class="footer-link" onclick="location.href='contact.html'">Contact Us</button>
+          <button class="footer-link" onclick="location.href='guidelines.html'">Community Guidelines</button>
+          <button class="footer-link" onclick="location.href='index.html'">Become an Agent</button>
+          <button class="footer-link" onclick="location.href='terms.html'">Terms &amp; Conditions</button>
+        </div>
+        <div class="footer-copy">© 2026 Spotly. All rights reserved.</div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function el(id) { return document.getElementById(id); }
+
+</script>
+</body>
+</html>

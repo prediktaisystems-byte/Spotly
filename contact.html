@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Contact Us — Spotly</title>
+  <meta name="description" content="Get in touch with the Spotly team — report an issue, ask a question, or send feedback." />
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0F766E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spotly" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div id="app">
+  <div id="view-container">
+    <div id="contact-view" class="view active">
+      <div class="legal-hero">
+        <h1>Contact Us</h1>
+        <p>We're here to help. Reach out any time.</p>
+      </div>
+
+      <div class="legal-body">
+        <!-- Contact form -->
+        <div style="font-size:14px;font-weight:500;color:var(--text-primary)">Send us a message</div>
+        <div class="contact-form-card">
+          <!-- Success state -->
+          <div class="contact-success" id="contact-success">
+            <i class="ti ti-circle-check" style="font-size:36px;color:var(--primary);display:block;margin-bottom:10px"></i>
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px">Message Sent!</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">We've received your message and will respond shortly. Thank you for reaching out.</div>
+            <button onclick="resetContactForm()" class="btn-outline" style="margin-top:16px;width:auto;padding:0 20px">Send another</button>
+          </div>
+
+          <!-- Form fields -->
+          <div id="contact-form-body">
+            <div>
+              <label class="label">Full Name *</label>
+              <input id="cf-name" class="inp" type="text" placeholder="Your full name" />
+            </div>
+            <div>
+              <label class="label">Subject *</label>
+              <select id="cf-subject" class="inp">
+                <option value="">Select subject</option>
+                <option value="Complaint">Complaint</option>
+                <option value="Account Issue">Account Issue</option>
+                <option value="Payment Issue">Payment Issue</option>
+                <option value="Provider Issue">Provider Issue</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Business Enquiry">Business Enquiry</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">Message *</label>
+              <textarea id="cf-message" class="inp" rows="5" placeholder="Describe your issue or inquiry..." style="resize:none"></textarea>
+            </div>
+            <div id="cf-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:10px 12px;border-radius:8px;border:1px solid #FCA5A5"></div>
+            <button class="btn-primary" id="cf-submit-btn" onclick="submitContactForm()">
+              <i class="ti ti-send" style="font-size:16px"></i>
+              Send Message
+            </button>
+          </div>
+        </div>
+
+        <div class="legal-meta">We aim to respond within 24 hours on business days.</div>
+      </div>
+
+      <div id="contact-footer">
+      <div class="spotly-footer">
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="ti ti-map-pin"></i></div>
+          <span class="footer-brand-name">Spotly</span>
+        </div>
+        <div class="footer-tagline">Find trusted workers and businesses near you.</div>
+        <div class="footer-cards-grid">
+          <div class="footer-card" onclick="location.href='trust.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield-check"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Trust &amp; Verification</div>
+              <div class="footer-card-desc">Learn how Spotly verifies providers and builds trust</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='how.html'">
+            <div class="footer-card-icon"><i class="ti ti-settings"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">How Spotly Works</div>
+              <div class="footer-card-desc">Learn how Spotly connects people with services</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='faq.html'">
+            <div class="footer-card-icon"><i class="ti ti-help-circle"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">FAQ</div>
+              <div class="footer-card-desc">Answers to common questions</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='safety.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Safety Tips</div>
+              <div class="footer-card-desc">Stay safe while hiring workers</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+        </div>
+        <div class="footer-links">
+          <button class="footer-link" onclick="location.href='about.html'">About Us</button>
+          <button class="footer-link" onclick="location.href='privacy.html'">Privacy Policy</button>
+          <button class="footer-link" onclick="location.href='contact.html'">Contact Us</button>
+          <button class="footer-link" onclick="location.href='guidelines.html'">Community Guidelines</button>
+          <button class="footer-link" onclick="location.href='index.html'">Become an Agent</button>
+          <button class="footer-link" onclick="location.href='terms.html'">Terms &amp; Conditions</button>
+        </div>
+        <div class="footer-copy">© 2026 Spotly. All rights reserved.</div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function el(id) { return document.getElementById(id); }
+const API_URL = 'https://script.google.com/macros/s/AKfycbxnREd8oKAhDNW-2thJm6a2SGDAUQ-MM1q3WGxoxbRWf8jTrtaHudZFoXoM-NOgjGM/exec';
+async function apiGet(action, params = {}) {
+  const clean = { action };
+  for (const [k, v] of Object.entries(params)) { if (v !== undefined && v !== null && v !== '') clean[k] = String(v); }
+  const q = new URLSearchParams(clean).toString();
+  const res = await fetch(`${API_URL}?${q}`);
+  const d = await res.json();
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+async function apiPost(body) {
+  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  const text = await res.text();
+  let d;
+  try { d = JSON.parse(text); } catch(e) { throw new Error('Server returned invalid JSON: ' + text.slice(0, 120)); }
+  if (d.status !== 'success') throw new Error(d.message || 'Request failed');
+  return d.data;
+}
+async function submitContactForm() {
+  const name    = (el('cf-name')    && el('cf-name').value.trim())    || '';
+  const subject = (el('cf-subject') && el('cf-subject').value)        || '';
+  const message = (el('cf-message') && el('cf-message').value.trim()) || '';
+  const errEl   = el('cf-error');
+  const btn     = el('cf-submit-btn');
+  function showErr(msg) { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; } }
+  if (errEl) errEl.style.display = 'none';
+  if (!name)    { showErr('Please enter your full name.'); return; }
+  if (!subject) { showErr('Please select a subject.'); return; }
+  if (!message) { showErr('Please enter your message.'); return; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2 spin" style="font-size:16px"></i> Sending...'; }
+  try {
+    const pid = localStorage.getItem('spotly_provider_id') || '';
+    await apiPost({ action: 'submitSupportMessage', userId: pid, name, subject, message, timestamp: new Date().toISOString(), status: 'open' });
+  } catch (e) { console.warn('[Spotly] Contact form backend error (non-blocking):', e.message); }
+  const formBody = el('contact-form-body');
+  const successEl = el('contact-success');
+  if (formBody) formBody.style.display = 'none';
+  if (successEl) successEl.style.display = 'block';
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-send" style="font-size:16px"></i> Send Message'; }
+}
+function resetContactForm() {
+  ['cf-name','cf-message'].forEach(id => { const e = el(id); if (e) e.value = ''; });
+  const s = el('cf-subject'); if (s) s.value = '';
+  const errEl = el('cf-error'); if (errEl) errEl.style.display = 'none';
+  const formBody = el('contact-form-body');
+  const successEl = el('contact-success');
+  if (formBody) formBody.style.display = '';
+  if (successEl) successEl.style.display = 'none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>FAQ — Spotly</title>
+  <meta name="description" content="Frequently asked questions about using Spotly." />
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0F766E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Spotly" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+<div id="app">
+  <div id="view-container">
+    <div id="faq-view" class="view active">
+      <div class="info-hero">
+        <button class="info-back-btn" onclick="location.href='index.html'"><i class="ti ti-arrow-left"></i></button>
+        <h1 class="info-hero-title">Frequently Asked Questions</h1>
+        <p class="info-hero-sub">Get answers to the most common questions about Spotly.</p>
+      </div>
+      <div class="info-body">
+        <div class="faq-list" id="faq-list">
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What is Spotly?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Spotly is a platform that connects users with trusted workers and businesses nearby.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>Is Spotly free to use?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Yes. Searching and contacting providers is completely free.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What is a "Verified ID" badge?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">It shows a provider has submitted valid government-issued identification (ID + selfie) that Spotly's team has reviewed and approved. It confirms identity only — not the quality of their work.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I get a "Verified ID" badge?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to your Provider Dashboard → Verify ID (Verification Center), then upload a clear photo of your government-issued ID and a selfie, and submit. Spotly's admin team reviews it and updates your status within 24–48 hours.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>I can't see the "Verified ID badge" option in settings. Why?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">This option only appears for registered providers. If you're a customer account, you won't see it — verification is provider-only. If you are a provider and still don't see it, log out and back in, or make sure your provider profile setup is complete.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What should I do to pass KYC verification?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Upload a valid, unexpired government-issued ID with a clear, unedited photo. Upload a well-lit selfie of yourself with your face clearly visible, matching your ID. Make sure both images aren't blurry and nothing is cropped out.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How long is this badge valid?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Once approved, the Verified ID badge stays active on your profile and doesn't expire on its own. Spotly can revoke it if documents are later found to be invalid or fraudulent.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>I submitted my ID and selfie, but I didn't get a badge. What should I do?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Reviews take 24–48 hours. If it's been longer, check your Verification Center for a rejection reason, such as a blurry photo or a selfie that doesn't match your ID, and resubmit after correcting it. If it's still unresolved, contact Spotly support.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What is a Premium badge?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">It shows a provider is on Spotly's paid Premium Plan (₦2,000/month), which boosts visibility in search results and on the map, and unlocks extra features like video portfolio uploads.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I get a premium badge?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">From your Provider Dashboard, tap "Upgrade to Premium — ₦2,000/month" and complete payment. Your badge and expiry date update immediately after payment is confirmed.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What are the prohibited activities on Spotly?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">1. Impersonating other users or providers<br>2. Uploading illegal or harmful content<br>3. Committing fraud or misrepresentation<br>4. Harassing other users<br>5. Manipulating ratings or creating fake reviews</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>Should I chat or call the provider?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Spotly doesn't have in-app chat. You contact providers directly by Call or WhatsApp from their profile, with no middleman.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How long will my premium ads stay on Spotly?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Your Premium Plan runs for 30 days from payment and expires automatically at the end of that period unless renewed.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I renew my Spotly Premium Plan?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to your Provider Dashboard and tap "Upgrade to Premium" again before or after it expires. Payment extends your plan by another 30 days.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How often can I renew my Premium Plan?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">As often as you like. You can renew any time, even before the current cycle ends.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>What if my Premium Plan is closed?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Your profile drops back to the Free plan. You lose the Premium badge, priority placement, and video portfolio access, but your listing stays active and reachable.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How to leave a review about the provider?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Open the provider's profile, tap the review/rating option, choose a star rating, and write your feedback. Only one review per provider per device is allowed.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How to search a provider on Spotly?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Use the search bar on the home or search screen and type a service, name, or category. You can also switch to Map mode to browse providers near you.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I share my photos on the For You page?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Dashboard → My Profile → Portfolio, tap "Add Photos" and upload from your device. Tap the Share/Live button on a photo to open the "Share to For You" sheet, add an optional caption and hashtags, then tap "Post to For You." Free plan: up to 3 photo slots. Premium: up to 10 photo slots.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I share my videos on the For You page?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">This is a Premium-only feature. Go to Dashboard → My Profile → Videos and tap "Add Portfolio Video," paste a video link from YouTube, Facebook, TikTok or Instagram, add a title/caption, and save (up to 3 videos can be uploaded to your portfolio). Tap "Share to For You" on any uploaded video to publish it — you can have up to 3 videos live on the For You feed at once. Tap "Share Again" to repost, or "Remove" to free up a slot when full.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How long do my For You posts stay visible?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Free Plan: photo posts stay live for 7 days, then expire automatically. No video posts allowed. Premium Plan: both photo and video posts stay live for 30 days, then expire automatically unless reposted, with up to 10 photo slots and 3 video slots at once.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I find a provider's business location on the map?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Open a provider's post on the For You feed and tap "Location," or go to Maps from the bottom nav and select a provider to open a full map with their live pin. Tap "Open in Google Maps" or "Get Directions" to navigate.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I view my business location on the map?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Dashboard → My Profile and tap "View my business on Map" to preview your pin exactly as customers see it. If no location is set, tap "Update Business Location" to add one.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I share my business location with customers?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">In your Provider Dashboard, find the location preview section and tap "Share Location" to open your device's share sheet (or WhatsApp) with a Google Maps directions link plus your Spotly profile link. Or tap "Copy Link" to copy the location link directly.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do customers get directions to my business?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">From your profile or a For You post, they tap "Open in Google Maps" or "Get Directions" for instant turn-by-turn navigation to your pin.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I share my business profile?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Dashboard → Share Profile and tap "Share" to open your device's native share sheet (or WhatsApp) with your profile link.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I update my business profile?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Dashboard → My Profile and edit your bio, occupation, and location directly, then save. To change your name or phone number, contact Spotly support.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I upload photos to my profile?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Dashboard → My Profile → Portfolio and tap "Add Photos" to select images from your device. Free plan allows up to 3 portfolio photos.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I upload videos to my profile?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">This is Premium only. Go to Dashboard → My Profile → Videos and tap "Add Portfolio Video," paste your YouTube/Facebook/Instagram link, add a title/description, and save. Up to 3 videos can be uploaded and featured on your public profile.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I contact Spotly?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Open the menu → Contact Us, fill in your name, subject (Complaint, Account Issue, Payment Issue, Provider Issue, General Inquiry, Business Enquiry), and message, then tap "Send Message." Spotly aims to respond within 24 hours on business days.</div>
+          </div>
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q"><span>How do I report a problem or bug?</span><i class="ti ti-chevron-down faq-chevron"></i></div>
+            <div class="faq-a">Go to Contact Us, select the closest matching subject (e.g. Account Issue), describe the bug clearly, and submit. Use this also for suspicious activity, fake profiles, or harmful content.</div>
+          </div>
+        </div>
+      </div>
+      <div id="faq-footer">
+      <div class="spotly-footer">
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><i class="ti ti-map-pin"></i></div>
+          <span class="footer-brand-name">Spotly</span>
+        </div>
+        <div class="footer-tagline">Find trusted workers and businesses near you.</div>
+        <div class="footer-cards-grid">
+          <div class="footer-card" onclick="location.href='trust.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield-check"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Trust &amp; Verification</div>
+              <div class="footer-card-desc">Learn how Spotly verifies providers and builds trust</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='how.html'">
+            <div class="footer-card-icon"><i class="ti ti-settings"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">How Spotly Works</div>
+              <div class="footer-card-desc">Learn how Spotly connects people with services</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='faq.html'">
+            <div class="footer-card-icon"><i class="ti ti-help-circle"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">FAQ</div>
+              <div class="footer-card-desc">Answers to common questions</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+          <div class="footer-card" onclick="location.href='safety.html'">
+            <div class="footer-card-icon"><i class="ti ti-shield"></i></div>
+            <div class="footer-card-body">
+              <div class="footer-card-title">Safety Tips</div>
+              <div class="footer-card-desc">Stay safe while hiring workers</div>
+            </div>
+            <i class="ti ti-chevron-right footer-card-arrow"></i>
+          </div>
+        </div>
+        <div class="footer-links">
+          <button class="footer-link" onclick="location.href='about.html'">About Us</button>
+          <button class="footer-link" onclick="location.href='privacy.html'">Privacy Policy</button>
+          <button class="footer-link" onclick="location.href='contact.html'">Contact Us</button>
+          <button class="footer-link" onclick="location.href='guidelines.html'">Community Guidelines</button>
+          <button class="footer-link" onclick="location.href='index.html'">Become an Agent</button>
+          <button class="footer-link" onclick="location.href='terms.html'">Terms &amp; Conditions</button>
+        </div>
+        <div class="footer-copy">© 2026 Spotly. All rights reserved.</div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function el(id) { return document.getElementById(id); }
+function toggleFaq(item) {
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
