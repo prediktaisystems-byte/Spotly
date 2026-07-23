@@ -3166,7 +3166,7 @@
 // ══════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbzwG7zrkd9K7Te7ZsAVlMbtsyvdOa0Rzw86QB_2OeqGglgDvSimylsLH3KrAWMVjKwb/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzpTyib1WDrXY8tIQTV57lce9wnIcK62g4Vgy7ZYIYSLAKLf-ftVXRsLb9h8N_IaKG4/exec';
 
 // ══════════════════════════════════════════════════════════════════
 //  API WRAPPERS
@@ -7685,14 +7685,19 @@ function closeMapLegend(e) {
 }
 
 // ── Google Maps-style marker factory ─────────────────────────────
-// Circle icon (sits on GPS point, caret pointing down) + plain text label to the right
+// Icon-only marker (circle sits on the GPS point, small caret pointing
+// down) — NO permanent business-name text is ever rendered on the map
+// (that's what caused overlapping labels like "John Metal Construction" /
+// "John Metal Construction Venture"). The name only shows once the user
+// taps the pin (provider preview card) or taps a tight cluster ("N
+// Businesses Here" bottom sheet). Premium/Verified tier still reads at a
+// glance via the circle's fill colour + the small ⭐/✔ badge — see .spm-*
+// rules in app.css.
 function _markerIcon(p) {
   const isPremium  = p.PlanType === 'premium' || p.planType === 'premium';
   const isVerified = p.Verified === 'true'    || p.verified === true;
   const occ        = p.Occupation || p.occupation || p.Profession || '';
   const emoji      = _occEmoji(occ);
-  const label      = (p.BusinessName || p.businessName || p.FullName || p.name || p.fullName || '')
-                       .substring(0, 22);
 
   let tierClass = '';
   let badge     = '';
@@ -7705,16 +7710,19 @@ function _markerIcon(p) {
       <div class="spm-circle ${tierClass}">
         ${emoji}${badge}
       </div>
-      ${label ? `<span class="spm-label">${label}</span>` : ''}
     </div>`;
 
-  // Circle is 21px wide, 21px tall + 5px caret = 26px total height (was 30px + 7px = 37px)
-  // Anchor at left-centre of circle (x=11) at bottom of caret (y=26)
+  // Circle is 21px + 2px border each side (~25px visual) + 5px caret = 26px
+  // tall. No label anymore, so the box only needs to fit the circle itself
+  // — a wide invisible hitbox next to each pin would otherwise create dead
+  // click zones that overlap neighbouring markers. The generous 34×34
+  // enlarged tap target (.spm-circle::before in app.css) still keeps pins
+  // easy to hit on mobile.
   return L.divIcon({
     html,
     className: '',
-    iconSize:  [180, 26],   // wide enough for label; height = circle+caret
-    iconAnchor:[11,  26],   // pin tip = bottom of caret, horizontally centred on circle
+    iconSize:  [26, 26],
+    iconAnchor:[13, 26],   // pin tip = bottom of caret, horizontally centred on circle
     popupAnchor:[0, -26]
   });
 }
@@ -7768,23 +7776,143 @@ function _clusterIcon(cluster) {
 
 // Builds a markerClusterGroup pre-wired with Spotly's clustering rules.
 // Both the Nearby map and Search map use this so behaviour stays identical.
+//
+// Tap behaviour on a cluster bubble:
+//   • still room to zoom in further → zoom toward the cluster (splits it)
+//   • already at max zoom, OR every provider inside sits on (almost) the
+//     exact same coordinate → zooming further wouldn't separate them, so
+//     instead of Leaflet's spiderfy fan-out we open a clean bottom sheet
+//     listing every provider ("N Businesses Here"). No overlapping labels,
+//     no tiny hard-to-tap spiderfied legs — just a scrollable list.
 function _buildProviderCluster(map) {
   const group = L.markerClusterGroup({
     iconCreateFunction:   _clusterIcon,
     maxClusterRadius:     zoom => _clusterRadiusForZoom(zoom),
-    disableClusteringAtZoom: null,   // keep clustering active even at max zoom, so true coordinate-overlaps still group + spiderfy
-    spiderfyOnMaxZoom:    true,
-    spiderfyDistanceMultiplier: 1.6, // fan overlapping pins out a bit further for easy tapping
+    disableClusteringAtZoom: null,   // keep clustering active even at max zoom, so true coordinate-overlaps still group
+    spiderfyOnMaxZoom:    false,     // replaced by the bottom-sheet list below
     showCoverageOnHover:  false,     // no distracting polygon flash on hover
-    zoomToBoundsOnClick:  true,      // tapping a cluster zooms in toward it first
+    zoomToBoundsOnClick:  false,     // handled manually in 'clusterclick' so we can branch to the sheet
     animate:              true,
     animateAddingMarkers: true,      // smooth transitions on cluster/expand/collapse
     chunkedLoading:       true,      // keeps hundreds/thousands of markers responsive
     chunkInterval:        100,
     chunkDelay:           30
   });
+
+  group.on('clusterclick', (a) => {
+    const cluster  = a.layer;
+    const children = cluster.getAllChildMarkers();
+    const bounds   = cluster.getBounds();
+    const zoom     = map.getZoom();
+    const maxZoom  = map.getMaxZoom();
+
+    // "Tight" = opposite corners of the cluster's bounds are within ~15m of
+    // each other — i.e. these providers are effectively on the same spot
+    // (same building/plaza) and zooming in further will never split them.
+    let isTight = true;
+    try {
+      isTight = bounds.getNorthEast().distanceTo(bounds.getSouthWest()) < 15;
+    } catch (e) { isTight = true; }
+
+    if (isTight || zoom >= maxZoom) {
+      const providers = children.map(m => m._spProvider).filter(Boolean);
+      _openClusterSheet(providers);
+    } else {
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: maxZoom });
+    }
+  });
+
   group.addTo(map);
   return group;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  Cluster bottom sheet — "N Businesses Here"
+//  Shared by both the Nearby map and Search map. Built once and reused
+//  so we don't duplicate DOM/markup per map instance.
+// ══════════════════════════════════════════════════════════════════
+let _spClusterSheetEl = null;
+
+function _ensureClusterSheet() {
+  if (_spClusterSheetEl) return _spClusterSheetEl;
+  const wrap = document.createElement('div');
+  wrap.id = 'sp-cluster-sheet';
+  wrap.className = 'sp-cs-overlay';
+  wrap.onclick = (e) => { if (e.target === wrap) _closeClusterSheet(); };
+  wrap.innerHTML = `
+    <div class="sp-cs-panel" onclick="event.stopPropagation()">
+      <div class="sp-cs-handle" onclick="_closeClusterSheet()" style="cursor:pointer"></div>
+      <div class="sp-cs-title" id="sp-cs-title">Businesses Here</div>
+      <div class="sp-cs-list" id="sp-cs-list"></div>
+    </div>`;
+  document.body.appendChild(wrap);
+  _spClusterSheetEl = wrap;
+  return wrap;
+}
+
+function _openClusterSheet(providers) {
+  if (!Array.isArray(providers) || !providers.length) return;
+  const wrap = _ensureClusterSheet();
+
+  // Same VIP-priority ordering used elsewhere on the map
+  const sorted = [...providers].sort((a, b) => {
+    const score = p => {
+      const vip = p.PlanType === 'premium' || p.planType === 'premium';
+      const ver = p.Verified === 'true'    || p.verified === true;
+      return (vip ? 2 : 0) + (ver ? 1 : 0);
+    };
+    return score(b) - score(a);
+  });
+
+  const titleEl = wrap.querySelector('#sp-cs-title');
+  if (titleEl) titleEl.textContent = `${sorted.length} Business${sorted.length === 1 ? '' : 'es'} Here`;
+
+  const listEl = wrap.querySelector('#sp-cs-list');
+  if (listEl) {
+    listEl.innerHTML = sorted.map(p => {
+      const pid       = p.ProviderId    || p.providerId    || '';
+      const bizName   = p.BusinessName  || p.businessName  || '';
+      const fullName  = p.FullName      || p.name          || p.fullName || '';
+      const name      = bizName || fullName || '—';
+      const occ       = p.Occupation    || p.occupation    || p.Profession || '';
+      const emoji     = _occEmoji(occ);
+      const isPremium = p.PlanType === 'premium' || p.planType === 'premium';
+      const isVerified= p.Verified === 'true'    || p.verified === true;
+      const rating    = parseFloat(p.AverageRating || p.averageRating) || 0;
+      const dist      = p.distanceLabel || '';
+
+      let tierClass = '';
+      if      (isPremium && isVerified) tierClass = 'tier-both';
+      else if (isPremium)               tierClass = 'tier-vip';
+      else if (isVerified)              tierClass = 'tier-ver';
+
+      let badges = '';
+      if (isPremium)  badges += `<span class="badge badge-premium"><i class="ti ti-crown" style="font-size:8px"></i>Premium</span>`;
+      if (isVerified) badges += `<span class="badge badge-verified"><i class="ti ti-circle-check" style="font-size:8px"></i>Verified</span>`;
+      if (!isPremium && !isVerified) badges += `<span class="badge">Free</span>`;
+
+      return `
+        <div class="sp-cs-item" onclick="_closeClusterSheet();openProfileById('${pid}')">
+          <div class="sp-cs-item-icon ${tierClass}">${emoji}</div>
+          <div class="sp-cs-item-body">
+            <div class="sp-cs-item-name">📍 ${name}</div>
+            <div class="sp-cs-item-occ">${occ}</div>
+            <div class="sp-cs-item-meta">
+              ${badges}
+              ${rating > 0 ? renderStars(rating, 10) + ` <strong>${rating.toFixed(1)}</strong>` : ''}
+              ${dist ? `<span style="color:var(--primary)">${dist}</span>` : ''}
+            </div>
+          </div>
+          <button class="sp-cs-item-btn" onclick="event.stopPropagation();_closeClusterSheet();openProfileById('${pid}')">View Profile</button>
+        </div>`;
+    }).join('');
+  }
+
+  requestAnimationFrame(() => wrap.classList.add('open'));
+}
+
+function _closeClusterSheet() {
+  if (_spClusterSheetEl) _spClusterSheetEl.classList.remove('open');
 }
 
 // ── Selected marker priority: bring tapped pin to front + dim rest ──
