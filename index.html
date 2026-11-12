@@ -2785,14 +2785,14 @@
             </div>
             <div>
               <label class="label">Listing Type *</label>
-              <select class="inp" id="lf-transactiontype">
+              <select class="inp" id="lf-transactiontype" onchange="_cbOnTxChange()">
                 <option value="sale">For Sale</option>
                 <option value="rent">For Rent</option>
               </select>
             </div>
             <div>
               <label class="label">Price (₦) *</label>
-              <input class="inp" id="lf-price" type="number" min="0" placeholder="e.g. 8000000" oninput="_lfUpdateCommissionPreview()" />
+              <input class="inp" id="lf-price" type="number" min="0" placeholder="e.g. 8000000" oninput="_lfUpdateCommissionPreview();_cbRenderPreview()" />
             </div>
             <div>
               <label class="label">Description <span class="optional">(optional)</span></label>
@@ -2819,6 +2819,17 @@
                   <option value="Filling Station">Filling Station</option>
                 </select>
               </div>
+            </div>
+
+            <!-- PROPERTY COST BREAKDOWN — optional fees for rent / sale. Rendered by _cbRender() (see _cb* functions).
+                 Saved as ONE JSON string in LISTINGS.CostBreakdown. Never shown for Car Dealer. -->
+            <div id="lf-cost-section" style="display:none;flex-direction:column;gap:10px">
+              <div>
+                <div class="label" style="margin-bottom:2px"><span id="lf-cost-title">Rental Costs</span> <span class="optional">(optional)</span></div>
+                <div style="font-size:11.5px;color:var(--text-tertiary);line-height:1.5">Tick only the charges that apply to this property. Customers will see them, with the total, on the property page.</div>
+              </div>
+              <div id="lf-cost-body" class="cb-form"></div>
+              <div id="lf-cost-preview" style="display:none"></div>
             </div>
 
             <!-- PROPERTY FEATURES — standardized, optional amenities selected via
@@ -15235,6 +15246,7 @@ function _listingDetailChanged_(oldL, newL) {
   // a lighter source (e.g. agent profile) repaints once the full record lands.
   if (JSON.stringify(oldL.Features || []) !== JSON.stringify(newL.Features || [])) return true;
   if (JSON.stringify(oldL.CustomFeatures || []) !== JSON.stringify(newL.CustomFeatures || [])) return true;
+  if (JSON.stringify(oldL.CostBreakdown || null) !== JSON.stringify(newL.CostBreakdown || null)) return true;
   if (photosOf(oldL) !== photosOf(newL)) return true;
   if (videoIdsOf(oldL) !== videoIdsOf(newL)) return true;
   return false;
@@ -15685,6 +15697,7 @@ function _renderListingDetail(l) {
       ${locationLabel ? `<div class="ld-meta-row"><i class="ti ti-map-pin" style="font-size:14px"></i>${locationLabel}</div>` : ''}
       ${specHtml ? `<div class="ld-spec-grid">${specHtml}</div>` : ''}
       ${l.Description ? `<div class="ld-desc">${l.Description.replace(/</g,'&lt;')}</div>` : ''}
+      ${isProperty ? _cbDetailHTML(l) : ''}
       ${isProperty ? _ldFeaturesHTML(l) : ''}
       ${l.ProviderId ? (isProperty ? _ldAgentSectionProperty(l, hasContact ? existingLead : null, l.providerPhoto ? toDriveThumb(l.providerPhoto, 'w120') : '') : `<div class="ld-agent-section">
         <div class="ld-agent-heading">Listed by this Agent</div>
@@ -19842,6 +19855,7 @@ function openAddListing() {
   _lfSelectedFeatures = new Set();
   _lfCustomFeatures = [];
   if (!isCarDealer) { _lfRenderFeatureChips(); _lfRenderCustomFeatures(); }
+  _cbInit(null, isCarDealer);   // Cost Breakdown: blank form
   if (el('lf-photos-hint'))     el('lf-photos-hint').style.display = 'block';
   if (el('lf-photos-container')) el('lf-photos-container').style.display = 'none';
   if (el('lf-videos-hint'))     el('lf-videos-hint').style.display = 'block';
@@ -19906,6 +19920,7 @@ function openEditListing(listingId) {
   _lfSelectedFeatures = new Set(_lfParseFeatureField(listing.Features));
   _lfCustomFeatures = _lfParseFeatureField(listing.CustomFeatures);
   if (!isCarDealer) { _lfRenderFeatureChips(); _lfRenderCustomFeatures(); }
+  _cbInit(listing, isCarDealer);   // Cost Breakdown: load saved fees (absent on older listings)
   if (el('lf-msg')) { el('lf-msg').style.display = 'none'; el('lf-msg').textContent = ''; }
 
   // Existing listing — photo manager + status/delete actions available
@@ -20056,6 +20071,398 @@ function _lfShowMsg(text, isError) {
   m.textContent = text;
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  PROPERTY COST BREAKDOWN (rent + sale)
+//  Stored as ONE JSON string in LISTINGS.CostBreakdown. Only INPUTS are
+//  stored (amounts / percentages / modes) — Naira results are always
+//  computed from the CURRENT listing price, so they can never go stale.
+//  Shape: { v:1, tx:'rent'|'sale', none:bool, fees:{key:{...}}, other:[...] }
+// ════════════════════════════════════════════════════════════════════
+var CB_DEFS = {
+  rent: [
+    { key: 'caution',    label: 'Caution Fee',    kind: 'simple', refund: true, note: true,  notePh: 'Short explanation (optional)' },
+    { key: 'inspection', label: 'Inspection Fee', kind: 'simple', note: true,  notePh: 'What does this cover? (optional)' },
+    { key: 'agency',     label: 'Agency Fee',     kind: 'simple', note: false },
+    { key: 'agreement',  label: 'Agreement Fee',  kind: 'simple', note: true,  notePh: 'Short explanation (optional)' }
+  ],
+  sale: [
+    { key: 'inspection',       label: 'Inspection Fee',            kind: 'simple', note: true, notePh: 'What does this cover? (optional)' },
+    { key: 'buyerCommission',  label: "Buyer's Agency Commission",  kind: 'commission', defPayer: 'buyer' },
+    { key: 'sellerCommission', label: "Seller's Agency Commission", kind: 'commission', defPayer: 'seller' },
+    { key: 'agreement',        label: 'Agreement Fee',             kind: 'simple', note: true, notePh: 'Short explanation (optional)' }
+  ]
+};
+var CB_REFUND_LABELS = { 'refundable': 'Refundable', 'partial': 'Partially refundable', 'non-refundable': 'Non-refundable' };
+var CB_MAX_OTHER = 8;
+
+function _cbMoney(n) {
+  return '₦' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+function _cbNum(v) {
+  if (v === '' || v === null || v === undefined) return NaN;
+  var n = Number(v);
+  return (isFinite(n) && n >= 0) ? n : NaN;
+}
+function _cbRound2(n) { return Math.round(n * 100) / 100; }
+
+function _cbParse(raw) {
+  if (!raw) return null;
+  var o = raw;
+  if (typeof raw === 'string') { try { o = JSON.parse(raw); } catch (e) { return null; } }
+  return (o && typeof o === 'object' && !Array.isArray(o)) ? o : null;
+}
+
+// Pure calculation. Returns null when the listing has no cost-breakdown info
+// (older listings) so nothing is rendered for them.
+function _cbCompute(cbRaw, tx, price) {
+  var cb = _cbParse(cbRaw);
+  if (!cb) return null;
+  tx = (tx === 'rent') ? 'rent' : 'sale';
+  if (cb.tx && cb.tx !== tx) return null;           // stale data from another listing type is never shown
+  var p = _cbNum(price);
+  var res = { tx: tx, price: p, none: !!cb.none, buyer: [], seller: [], unassigned: [],
+              total: isFinite(p) ? p : 0, incomplete: false, unconfirmed: 0 };
+  var fees = cb.fees || {};
+  var any = false;
+
+  function addRow(side, row) {
+    any = true;
+    if (side === 'seller') { res.seller.push(row); return; }
+    if (side === 'unassigned') { res.unassigned.push(row); res.incomplete = true; res.unconfirmed++; return; }
+    res.buyer.push(row);
+    if (row.amount != null) res.total += row.amount; else { res.incomplete = true; res.unconfirmed++; }
+  }
+  function simpleRow(label, f) {
+    var amt = (f.mode === 'fixed') ? _cbNum(f.amount) : NaN;
+    var amount = (isFinite(amt) && amt > 0) ? _cbRound2(amt) : null;
+    var state = amount != null ? 'amount' : (f.mode === 'negotiable' ? 'negotiable' : 'tbc');
+    return { label: label, amount: amount, state: state, detail: '', note: f.note || '', refund: f.refund || '' };
+  }
+  function commissionParts(item) {
+    var parts = [];
+    if (item.payer === 'both') {
+      parts.push({ party: 'buyer',  calc: item.calc,       value: item.value });
+      parts.push({ party: 'seller', calc: item.calcSeller, value: item.valueSeller });
+    } else {
+      parts.push({ party: item.payer === 'seller' ? 'seller' : (item.payer === 'buyer' ? 'buyer' : 'unassigned'),
+                   calc: item.calc, value: item.value });
+    }
+    return parts;
+  }
+
+  if (tx === 'rent') {
+    CB_DEFS.rent.forEach(function (d) {
+      var f = fees[d.key]; if (!f || typeof f !== 'object') return;   // presence = selected
+      addRow('buyer', simpleRow(d.label, f));
+    });
+  } else {
+    CB_DEFS.sale.forEach(function (d) {
+      var f = fees[d.key]; if (!f || typeof f !== 'object') return;   // presence = selected
+      if (d.kind === 'simple') { addRow('buyer', simpleRow(d.label, f)); return; }
+      commissionParts(f).forEach(function (part) {
+        if (part.calc === 'na' || !part.calc) return;               // Not applicable → not shown, not counted
+        var row = { label: d.label, amount: null, state: 'tbc', detail: '', note: '', refund: '',
+                    payer: part.party };
+        if (part.calc === 'negotiable') {
+          row.state = 'negotiable';
+        } else if (part.calc === 'percent') {
+          var pct = _cbNum(part.value);
+          if (isFinite(pct) && pct > 0 && pct <= 100) {
+            row.detail = (_cbRound2(pct)) + '%';
+            if (isFinite(p) && p > 0) { row.amount = _cbRound2(p * pct / 100); row.state = 'amount'; }
+          }
+        } else if (part.calc === 'fixed') {
+          var fx = _cbNum(part.value);
+          if (isFinite(fx) && fx > 0) { row.amount = _cbRound2(fx); row.state = 'amount'; row.detail = 'Fixed'; }
+        }
+        addRow(part.party, row);
+      });
+    });
+  }
+  (cb.other || []).forEach(function (o) {
+    if (!o || !o.name) return;
+    var row = simpleRow(String(o.name), o);
+    row.isOther = true;
+    addRow((tx === 'sale' && o.payer === 'seller') ? 'seller' : 'buyer', row);
+  });
+
+  res.total = _cbRound2(res.total);
+  res.has = any;
+  if (!any && !res.none) return null;                // nothing selected and not marked "no extra charges"
+  return res;
+}
+
+function _cbPayerLabel(p) {
+  return p === 'buyer' ? 'Paid by Buyer' : p === 'seller' ? 'Paid by Seller' : 'Payer to be confirmed';
+}
+
+// Shared by the public details page and the agent's live preview.
+function _cbBreakdownHTML(res) {
+  if (!res) return '';
+  var isRent = res.tx === 'rent';
+  function badge(state) {
+    return state === 'negotiable' ? '<span class="cb-badge cb-badge-neg">Negotiable</span>'
+         : state === 'tbc' ? '<span class="cb-badge cb-badge-tbc">To be confirmed</span>' : '';
+  }
+  function row(r, showPayer) {
+    var sub = [];
+    if (r.refund && CB_REFUND_LABELS[r.refund]) sub.push(CB_REFUND_LABELS[r.refund]);
+    if (showPayer && r.payer) sub.push(_cbPayerLabel(r.payer));
+    var main = r.amount != null
+      ? '<span class="cb-amt">' + _cbMoney(r.amount) + '</span>'
+      : badge(r.state);
+    var label = _rvEsc(r.label) + (r.detail && r.detail !== 'Fixed' ? ' <span class="cb-pct">(' + _rvEsc(r.detail) + ')</span>' : '');
+    var badgeAfter = (r.amount == null && r.state === 'tbc' && r.detail) ? '' : '';
+    return '<div class="cb-row"><div class="cb-lbl">' + label +
+      (sub.length ? '<div class="cb-sub">' + _rvEsc(sub.join(' · ')) + '</div>' : '') +
+      (r.note ? '<div class="cb-note">' + _rvEsc(r.note) + '</div>' : '') +
+      '</div><div class="cb-val">' + main + badgeAfter + '</div></div>';
+  }
+  var primaryLabel = isRent ? 'Annual Rent' : 'Selling Price';
+  var html = '<div class="cb-card">';
+  html += '<div class="cb-row cb-row-primary"><div class="cb-lbl">' + primaryLabel + '</div><div class="cb-val"><span class="cb-amt">' +
+          (isFinite(res.price) ? _cbMoney(res.price) : '—') + '</span></div></div>';
+  res.buyer.forEach(function (r) { html += row(r, !isRent && r.payer); });
+  if (res.none && !res.buyer.length && !res.seller.length) {
+    html += '<div class="cb-none">No additional charges listed by the agent.</div>';
+  }
+  var totalLabel = isRent ? 'Total Initial Rental Cost' : 'Estimated Buyer Total';
+  html += '<div class="cb-total"><div class="cb-total-lbl">' + totalLabel +
+          (res.incomplete ? '<div class="cb-total-sub">Confirmed charges only</div>' : '') +
+          '</div><div class="cb-total-amt">' + _cbMoney(res.total) + '</div></div>';
+  if (res.incomplete) {
+    html += '<div class="cb-warn"><i class="ti ti-info-circle"></i><span>Total is incomplete: ' + res.unconfirmed +
+            ' charge' + (res.unconfirmed === 1 ? ' is' : 's are') + ' negotiable or still to be confirmed and not included. Ask the agent for the final figure.</span></div>';
+  }
+  if (res.unassigned.length) {
+    html += '<div class="cb-side-title">Payer to be confirmed</div>';
+    res.unassigned.forEach(function (r) { html += row(r, false); });
+  }
+  if (res.seller.length) {
+    html += '<div class="cb-side-title">Seller-side costs <span>(not included in the buyer total)</span></div>';
+    res.seller.forEach(function (r) { html += row(r, true); });
+  }
+  return html + '</div>';
+}
+
+function _cbDetailHTML(l) {
+  try {
+    if (!l || l.ListingType !== 'PROPERTY') return '';
+    var res = _cbCompute(l.CostBreakdown, l.TransactionType === 'rent' ? 'rent' : 'sale', l.Price);
+    if (!res) return '';
+    return '<div class="cb-section"><div class="ld-section-title">Property Cost Breakdown</div>' + _cbBreakdownHTML(res) + '</div>';
+  } catch (e) { return ''; }
+}
+
+// ── Agent form: state + rendering ───────────────────────────────────
+var _cbBlankSide = function () { return { none: false, fees: {}, other: [] }; };
+var _cbState = { rent: _cbBlankSide(), sale: _cbBlankSide() };
+
+function _cbTx() { return (el('lf-transactiontype') && el('lf-transactiontype').value === 'rent') ? 'rent' : 'sale'; }
+
+function _cbInit(listing, isCarDealer) {
+  _cbState = { rent: _cbBlankSide(), sale: _cbBlankSide() };
+  var sec = el('lf-cost-section');
+  if (sec) sec.style.display = isCarDealer ? 'none' : 'flex';
+  if (!isCarDealer && listing) {
+    var cb = _cbParse(listing.CostBreakdown);
+    if (cb) {
+      var tx = cb.tx === 'rent' ? 'rent' : 'sale';
+      var side = _cbBlankSide();
+      side.none = !!cb.none;
+      Object.keys(cb.fees || {}).forEach(function (k) {
+        var f = cb.fees[k]; if (!f || typeof f !== 'object') return;
+        var c = {}; for (var x in f) c[x] = f[x];
+        c.on = true; side.fees[k] = c;
+      });
+      side.other = (cb.other || []).map(function (o) { var c = {}; for (var x in o) c[x] = o[x]; return c; });
+      _cbState[tx] = side;
+    }
+  }
+  _cbRender();
+}
+
+function _cbOnTxChange() { _cbRender(); }
+
+function _cbSide() { return _cbState[_cbTx()]; }
+
+function _cbDefaultFee(def) {
+  if (def.kind === 'commission') {
+    return { on: true, payer: def.defPayer, calc: 'percent', value: '', calcSeller: 'percent', valueSeller: '' };
+  }
+  var f = { on: true, mode: 'fixed', amount: '', note: '' };
+  if (def.refund) f.refund = '';
+  return f;
+}
+
+function _cbToggle(key, on) {
+  var side = _cbSide(), tx = _cbTx();
+  var def = CB_DEFS[tx].filter(function (d) { return d.key === key; })[0];
+  if (on) side.fees[key] = side.fees[key] || _cbDefaultFee(def); else delete side.fees[key];
+  _cbRender();
+}
+function _cbToggleNone(on) { _cbSide().none = !!on; _cbRender(); }
+
+// text/number inputs: update state + live preview only (keeps keyboard focus)
+function _cbSet(key, field, val) {
+  var f = _cbSide().fees[key]; if (!f) return;
+  f[field] = val;
+  _cbRenderPreview();
+}
+// selects: update state and rebuild the fields (they change which inputs show)
+function _cbSetR(key, field, val) { _cbSet(key, field, val); _cbRender(); }
+
+function _cbAddOther() {
+  var side = _cbSide();
+  if (side.other.length >= CB_MAX_OTHER) return;
+  side.other.push({ name: '', mode: 'fixed', amount: '', note: '', payer: 'buyer' });
+  _cbRender();
+}
+function _cbRemoveOther(i) { _cbSide().other.splice(i, 1); _cbRender(); }
+function _cbSetOther(i, field, val) { var o = _cbSide().other[i]; if (o) { o[field] = val; _cbRenderPreview(); } }
+function _cbSetOtherR(i, field, val) { _cbSetOther(i, field, val); _cbRender(); }
+
+function _cbOpt(val, label, cur) { return '<option value="' + val + '"' + (cur === val ? ' selected' : '') + '>' + label + '</option>'; }
+
+function _cbAmountInput(handler, val) {
+  return '<input class="inp cb-in" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount (₦)" value="' + _rvEsc(val == null ? '' : val) + '" oninput="' + handler + '" />';
+}
+
+function _cbSimpleHTML(def, f) {
+  var k = def.key, h = '';
+  h += '<div class="cb-fields">';
+  h += '<div class="cb-row2"><select class="inp cb-in" onchange="_cbSetR(\'' + k + '\',\'mode\',this.value)">' +
+       _cbOpt('fixed', 'Fixed amount (₦)', f.mode) + _cbOpt('negotiable', 'Negotiable', f.mode) + _cbOpt('tbc', 'Amount to be confirmed', f.mode) + '</select>';
+  if (f.mode === 'fixed') h += _cbAmountInput('_cbSet(\'' + k + '\',\'amount\',this.value)', f.amount);
+  h += '</div>';
+  if (def.refund) {
+    h += '<select class="inp cb-in" onchange="_cbSet(\'' + k + '\',\'refund\',this.value)">' +
+         _cbOpt('', 'Refund terms (choose)…', f.refund || '') + _cbOpt('refundable', 'Refundable', f.refund) +
+         _cbOpt('partial', 'Partially refundable', f.refund) + _cbOpt('non-refundable', 'Non-refundable', f.refund) + '</select>';
+  }
+  if (def.note) h += '<input class="inp cb-in" type="text" maxlength="150" placeholder="' + _rvEsc(def.notePh || 'Short explanation (optional)') + '" value="' + _rvEsc(f.note || '') + '" oninput="_cbSet(\'' + k + '\',\'note\',this.value)" />';
+  return h + '</div>';
+}
+
+function _cbCalcBlock(k, f, calcField, valueField, title) {
+  var calc = f[calcField], h = '<div class="cb-sub-block">';
+  if (title) h += '<div class="cb-sub-title">' + title + '</div>';
+  h += '<div class="cb-row2"><select class="inp cb-in" onchange="_cbSetR(\'' + k + '\',\'' + calcField + '\',this.value)">' +
+       _cbOpt('percent', 'Percentage (%)', calc) + _cbOpt('fixed', 'Fixed amount (₦)', calc) +
+       _cbOpt('negotiable', 'Negotiable', calc) + _cbOpt('na', 'Not applicable', calc) + '</select>';
+  if (calc === 'percent') h += '<input class="inp cb-in" type="number" min="0" max="100" step="any" inputmode="decimal" placeholder="e.g. 5" value="' + _rvEsc(f[valueField] == null ? '' : f[valueField]) + '" oninput="_cbSet(\'' + k + '\',\'' + valueField + '\',this.value)" />';
+  else if (calc === 'fixed') h += _cbAmountInput('_cbSet(\'' + k + '\',\'' + valueField + '\',this.value)', f[valueField]);
+  h += '</div></div>';
+  return h;
+}
+
+function _cbCommissionHTML(def, f) {
+  var k = def.key, h = '<div class="cb-fields">';
+  h += '<label class="cb-mini">Who pays this commission?</label>' +
+       '<select class="inp cb-in" onchange="_cbSetR(\'' + k + '\',\'payer\',this.value)">' +
+       _cbOpt('buyer', 'Buyer', f.payer) + _cbOpt('seller', 'Seller', f.payer) +
+       _cbOpt('both', 'Both Buyer and Seller', f.payer) + _cbOpt('tbc', 'To be confirmed', f.payer) + '</select>';
+  if (f.payer === 'both') {
+    h += _cbCalcBlock(k, f, 'calc', 'value', 'Buyer pays');
+    h += _cbCalcBlock(k, f, 'calcSeller', 'valueSeller', 'Seller pays');
+  } else {
+    h += _cbCalcBlock(k, f, 'calc', 'value', '');
+  }
+  return h + '</div>';
+}
+
+function _cbOtherHTML(side, tx) {
+  var h = '<div class="cb-other"><div class="cb-fee-name">Other Charges <span class="optional">(optional)</span></div>';
+  side.other.forEach(function (o, i) {
+    h += '<div class="cb-other-item">' +
+      '<div class="cb-row2"><input class="inp cb-in" type="text" maxlength="60" placeholder="Charge name" value="' + _rvEsc(o.name || '') + '" oninput="_cbSetOther(' + i + ',\'name\',this.value)" />' +
+      '<button type="button" class="cb-x" aria-label="Remove charge" onclick="_cbRemoveOther(' + i + ')"><i class="ti ti-trash"></i></button></div>' +
+      '<div class="cb-row2"><select class="inp cb-in" onchange="_cbSetOtherR(' + i + ',\'mode\',this.value)">' +
+        _cbOpt('fixed', 'Fixed amount (₦)', o.mode) + _cbOpt('negotiable', 'Negotiable', o.mode) + _cbOpt('tbc', 'Amount to be confirmed', o.mode) + '</select>' +
+        (o.mode === 'fixed' ? _cbAmountInput('_cbSetOther(' + i + ',\'amount\',this.value)', o.amount) : '') + '</div>' +
+      (tx === 'sale' ? '<select class="inp cb-in" onchange="_cbSetOther(' + i + ',\'payer\',this.value)">' + _cbOpt('buyer', 'Paid by Buyer', o.payer || 'buyer') + _cbOpt('seller', 'Paid by Seller', o.payer) + '</select>' : '') +
+      '<input class="inp cb-in" type="text" maxlength="150" placeholder="Short explanation (optional)" value="' + _rvEsc(o.note || '') + '" oninput="_cbSetOther(' + i + ',\'note\',this.value)" />' +
+      '</div>';
+  });
+  if (side.other.length < CB_MAX_OTHER) h += '<button type="button" class="btn-outline cb-add" onclick="_cbAddOther()"><i class="ti ti-plus" style="font-size:14px"></i>Add other charge</button>';
+  return h + '</div>';
+}
+
+function _cbRender() {
+  var body = el('lf-cost-body'); if (!body) return;
+  var tx = _cbTx(), side = _cbSide(), defs = CB_DEFS[tx];
+  var h = '<label class="cb-check cb-check-none"><input type="checkbox" ' + (side.none ? 'checked ' : '') + 'onchange="_cbToggleNone(this.checked)" /><span>No additional charges — the price above is all there is</span></label>';
+  if (!side.none) {
+    defs.forEach(function (d) {
+      var f = side.fees[d.key];
+      h += '<div class="cb-fee' + (f ? ' on' : '') + '"><label class="cb-check"><input type="checkbox" ' + (f ? 'checked ' : '') + 'onchange="_cbToggle(\'' + d.key + '\',this.checked)" /><span class="cb-fee-name">' + d.label + '</span></label>';
+      if (f) h += d.kind === 'commission' ? _cbCommissionHTML(d, f) : _cbSimpleHTML(d, f);
+      h += '</div>';
+    });
+    h += _cbOtherHTML(side, tx);
+  }
+  body.innerHTML = h;
+  var title = el('lf-cost-title');
+  if (title) title.textContent = tx === 'rent' ? 'Rental Costs' : 'Sale Costs';
+  _cbRenderPreview();
+}
+
+function _cbRenderPreview() {
+  var box = el('lf-cost-preview'); if (!box) return;
+  var res = _cbCompute(_cbSerializeObj(), _cbTx(), el('lf-price') ? el('lf-price').value : '');
+  box.innerHTML = res ? '<div class="cb-prev-title">Preview — what customers will see</div>' + _cbBreakdownHTML(res) : '';
+  box.style.display = res ? 'block' : 'none';
+}
+
+// Build the object that is saved (current listing type only). null = nothing chosen.
+function _cbSerializeObj() {
+  var tx = _cbTx(), side = _cbSide();
+  if (side.none) return { v: 1, tx: tx, none: true, fees: {}, other: [] };
+  var out = { v: 1, tx: tx, none: false, fees: {}, other: [] };
+  CB_DEFS[tx].forEach(function (d) {
+    var f = side.fees[d.key]; if (!f) return;
+    var c = {}; for (var x in f) c[x] = f[x];
+    delete c.on;
+    out.fees[d.key] = c;
+  });
+  side.other.forEach(function (o) { out.other.push({ name: o.name, mode: o.mode, amount: o.amount, note: o.note, payer: o.payer }); });
+  if (!Object.keys(out.fees).length && !out.other.length) return null;
+  return out;
+}
+
+// Returns an error message, or '' when valid.
+function _cbValidate() {
+  var tx = _cbTx(), side = _cbSide();
+  if (side.none) return '';
+  var err = '';
+  function chkAmount(label, mode, v) {
+    if (mode !== 'fixed') return '';
+    var n = _cbNum(v);
+    return (isFinite(n) && n > 0) ? '' : label + ': enter an amount greater than ₦0, or mark it Negotiable / To be confirmed.';
+  }
+  function chkCalc(label, calc, v) {
+    if (calc === 'percent') { var p = _cbNum(v); return (isFinite(p) && p > 0 && p <= 100) ? '' : label + ': enter a percentage between 0 and 100.'; }
+    if (calc === 'fixed') { var n = _cbNum(v); return (isFinite(n) && n > 0) ? '' : label + ': enter a fixed amount greater than ₦0.'; }
+    return '';
+  }
+  CB_DEFS[tx].forEach(function (d) {
+    if (err) return;
+    var f = side.fees[d.key]; if (!f) return;
+    if (d.kind === 'commission') {
+      err = chkCalc(d.label + (f.payer === 'both' ? ' (Buyer)' : ''), f.calc, f.value);
+      if (!err && f.payer === 'both') err = chkCalc(d.label + ' (Seller)', f.calcSeller, f.valueSeller);
+    } else {
+      err = chkAmount(d.label, f.mode, f.amount);
+    }
+  });
+  side.other.forEach(function (o, i) {
+    if (err) return;
+    if (!String(o.name || '').trim()) { err = 'Other Charges: give each charge a name (or remove it).'; return; }
+    err = chkAmount(o.name, o.mode, o.amount);
+  });
+  return err;
+}
+
 async function submitListingForm() {
   var pid = _sessionProviderId();
   var phone = _sessionProviderPhone();
@@ -20122,6 +20529,11 @@ async function submitListingForm() {
     // for promotion into the standard library (spec §12/§13).
     data.Features = JSON.stringify(Array.from(_lfSelectedFeatures));
     data.CustomFeatures = JSON.stringify(_lfCustomFeatures);
+    // Cost Breakdown — optional; validated here, re-validated by the backend (FeeBreakdown.gs).
+    var _cbErr = _cbValidate();
+    if (_cbErr) { _lfShowMsg(_cbErr, true); return; }
+    var _cbObj = _cbSerializeObj();
+    data.CostBreakdown = _cbObj ? JSON.stringify(_cbObj) : '';
   }
 
   var saveBtn = el('lf-save-btn');
