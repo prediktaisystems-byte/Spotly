@@ -1,0 +1,19 @@
+{
+  "id": "/Spotly/admin",
+  "name": "Spotly Admin",
+  "short_name": "Spotly Admin",
+  "description": "Private administration dashboard for Spotly.",
+  "start_url": "/Spotly/admin?source=pwa",
+  "scope": "/Spotly/admin",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0F6E56",
+  "background_color": "#F7F6F3",
+  "lang": "en",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "admin-icons/admin-192.png",          "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "admin-icons/admin-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "admin-icons/admin-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
